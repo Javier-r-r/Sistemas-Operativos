@@ -4,6 +4,42 @@
 #include <stdlib.h>
 #include <time.h>
 
+struct command {
+  int number;
+  const char *command;
+  struct command *next;
+};
+
+void addCommand(struct command **commandList, int *commandCount, const char *command) {
+  struct command *newCommand = (struct command*)malloc(sizeof(struct command));
+  if (newCommand != NULL) {
+    (*commandCount)++;
+    newCommand -> number = (*commandCount);
+    newCommand -> command =  command;
+    newCommand -> next = *commandList;
+    *commandList = newCommand;
+  }
+}
+
+// Función para imprimir los contenidos de la lista de comandos
+void printCommands(const struct command *commandList) {
+    const struct command *current = commandList;
+
+    printf("Lista de comandos:\n");
+    while (current != NULL) {
+        printf("%d: %s\n", current -> number, current -> command);
+        current = current -> next;
+    }
+}
+
+void clearCommands(struct command* commandList) {
+  while(commandList != NULL) {
+    struct command* aux = commandList;
+    commandList = commandList -> next;
+    free(aux);
+  }
+}
+
 void date() {
   // Obtener la fecha actual
   time_t t;
@@ -36,26 +72,31 @@ void times() {
   printf("Hora actual: %s\n", hora);
 }
 
-void procesar_comando(const char *comando, int *terminado) {
+void procesar_comando(const char *comando, int *terminado, struct command* commandList) {
     if (strcmp(comando, "exit") == 0 ||strcmp(comando, "quit") == 0 || strcmp(comando, "bye") == 0)
       *terminado = 0;
     else if (strcmp(comando, "date") == 0)
       date();
     else if(strcmp(comando, "time") == 0)
       times();
+    else if (strcmp(comando, "hist") == 0)
+      printCommands(commandList);
 }
 
 int main() {
     char comando[256]; // Usamos un array de caracteres para almacenar el comando
     int terminado = 1;
+    struct command* commandList = NULL;
+    int commandCount = 0;
 
     while (terminado) {
-        printf("Escriba el comando: \n");
+        printf("> ");
 
         gets(comando); // Leemos la entrada del usuario
         comando[strcspn(comando, "\n")] = '\0'; // Eliminamos el carácter de salto de línea
 
-        procesar_comando(comando, &terminado);
+        addCommand(&commandList, &commandCount, comando);
+        procesar_comando(comando, &terminado, commandList);
     }
 
     return 0;
