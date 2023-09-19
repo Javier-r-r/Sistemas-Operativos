@@ -39,9 +39,9 @@ void times() {
 void procesar_comando(const char *comando, int *terminado) {
     if (strcmp(comando, "exit") == 0 ||strcmp(comando, "quit") == 0 || strcmp(comando, "bye") == 0)
       *terminado = 0;
-    if (strcmp(comando, "date") == 0)
+    else if (strcmp(comando, "date") == 0)
       date();
-    if(strcmp(comando, "time") == 0)
+    else if(strcmp(comando, "time") == 0)
       times();
 }
 
