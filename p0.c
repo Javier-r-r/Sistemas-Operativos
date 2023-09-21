@@ -6,24 +6,26 @@
 
 struct command {
   int number;
-  const char *command;
+  char *command;
   struct command *next;
 };
 
+//Función para añadir comandos al historial
 void addCommand(struct command **commandList, int *commandCount, const char *command) {
-  struct command *newCommand = (struct command*)malloc(sizeof(struct command));
-  if (newCommand != NULL) {
-    (*commandCount)++;
-    newCommand -> number = (*commandCount);
-    newCommand -> command =  command;
-    newCommand -> next = *commandList;
-    *commandList = newCommand;
-  }
+    struct command *newCommand = (struct command *)malloc(sizeof(struct command));
+    if (newCommand != NULL) {
+        (*commandCount)++;
+        newCommand->number = (*commandCount);
+        newCommand->command = strdup(command); // Copia la cadena de comandos
+        newCommand->next = *commandList;
+        *commandList = newCommand;
+    }
 }
 
-// Función para imprimir los contenidos de la lista de comandos
-void printCommands(const struct command *commandList) {
-    const struct command *current = commandList;
+
+//Función para imprimir los contenidos de la lista de comandos
+void printCommands(struct command *commandList) {
+    struct command *current = commandList;
 
     printf("Lista de comandos:\n");
     while (current != NULL) {
@@ -36,6 +38,7 @@ void clearCommands(struct command* commandList) {
   while(commandList != NULL) {
     struct command* aux = commandList;
     commandList = commandList -> next;
+    free(aux -> command);
     free(aux);
   }
 }
@@ -98,6 +101,8 @@ int main() {
         addCommand(&commandList, &commandCount, comando);
         procesar_comando(comando, &terminado, commandList);
     }
+
+    clearCommands(commandList);
 
     return 0;
 }
