@@ -1,3 +1,6 @@
+//Javier Rodriguez Rodriguez || j.rrodriguez1@udc.es
+
+
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
@@ -47,6 +50,7 @@ void clearCommands(struct command* commandList, int *commandCount) {
   *commandCount = 0;
 }
 
+//Funcion que coordina el comando hist
 void hist(struct command* commandList, char *arg, int *commandCount) {
   if (arg == NULL)
     printCommands(commandList, *commandCount);
@@ -107,14 +111,17 @@ void systemInfo() {
   printf("  Machine: %s\n", systemInfo.machine);
 }
 
+//Funcion que imprime los logins de los autores
 void authorsl() {
   printf("j.rrodriguez1 and m.cortond\n");
 }
 
+//Funcion que imprime los nombres de los autores
 void authorsn() {
   printf("Javier and Miguel\n");
 }
 
+//Funcion que maneja las opciones de la funcion authors
 void authors(const char *arg) {
   if (arg == NULL) {
     authorsn();
@@ -124,6 +131,20 @@ void authors(const char *arg) {
   } else if (strcmp(arg, "-n") == 0) {
     authorsn();
   } 
+}
+
+//Funcion que realiza el comando N de la lista hist
+void command(struct command* commandList, int N, int *terminado, int *commandCount) {
+
+  struct command* aux = commandList;
+  while (aux != NULL) {
+    if (aux -> number == N) {
+      procesar_comando(aux -> command, terminado, commandList, commandCount);
+      break;
+    }
+    aux = aux -> next;
+  }
+
 }
 
 //Funcion encargada de llamar a la funcion correspondiente
@@ -140,6 +161,8 @@ void procesar_comando(char *comando, int *terminado, struct command* commandList
     systemInfo();
   else if (strcmp(comand, "authors") == 0)
     authors(arg);
+  else if (strcmp(comand, "comand") == 0)
+    command(commandList, atoi(arg), terminado, commandCount);
   else if (strcmp(comand, "hist") == 0)
     hist(commandList, arg, commandCount);
 }
