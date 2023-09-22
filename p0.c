@@ -96,8 +96,15 @@ void systemInfo() {
   printf("  Machine: %s\n", systemInfo.machine);
 }
 
+void authors() {
+  
+}
+
 //Funcion encargada de llamar a la funcion correspondiente
 void procesar_comando(const char *comando, int *terminado, struct command* commandList) {
+  char *comand = strtok(comando, " ");
+  char *arg = strtok(NULL, " ");
+  printf("%s %s", comand, arg);
   if (strcmp(comando, "exit") == 0 ||strcmp(comando, "quit") == 0 || strcmp(comando, "bye") == 0)
     *terminado = 0;
   else if (strcmp(comando, "date") == 0)
