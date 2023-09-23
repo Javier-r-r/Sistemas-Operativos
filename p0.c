@@ -1,3 +1,6 @@
+//Javier Rodriguez Rodriguez || j.rrodriguez1@udc.es
+
+
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
@@ -25,24 +28,36 @@ void addCommand(struct command **commandList, int *commandCount, const char *com
 
 
 //Función para imprimir los contenidos de la lista de comandos
-void printCommands(struct command *commandList) {
+void printCommands(struct command *commandList, int N) {
   struct command *current = commandList;
 
   printf("Lista de comandos:\n");
   while (current != NULL) {
-    printf("%d: %s\n", current -> number, current -> command);
+    if (current -> number <= N) 
+      printf("%d: %s\n", current -> number, current -> command);
     current = current -> next;
   }
 }
 
 //Funcion para vaciar la lista de comandos del historial
-void clearCommands(struct command* commandList) {
+void clearCommands(struct command* commandList, int *commandCount) {
   while(commandList != NULL) {
     struct command* aux = commandList;
     commandList = commandList -> next;
     free(aux -> command);
     free(aux);
   }
+  *commandCount = 0;
+}
+
+//Funcion que coordina el comando hist
+void hist(struct command* commandList, char *arg, int *commandCount) {
+  if (arg == NULL)
+    printCommands(commandList, *commandCount);
+  else if (strcmp(arg, "-c") == 0)
+    clearCommands(commandList, commandCount);
+  else if (atoi(arg))
+    printCommands(commandList, atoi(arg));
 }
 
 //Funcion para obtener la fecha del sistema
@@ -96,18 +111,60 @@ void systemInfo() {
   printf("  Machine: %s\n", systemInfo.machine);
 }
 
+//Funcion que imprime los logins de los autores
+void authorsl() {
+  printf("j.rrodriguez1 and m.cortond\n");
+}
+
+//Funcion que imprime los nombres de los autores
+void authorsn() {
+  printf("Javier and Miguel\n");
+}
+
+//Funcion que maneja las opciones de la funcion authors
+void authors(const char *arg) {
+  if (arg == NULL) {
+    authorsn();
+    authorsl();
+  } else if (strcmp(arg, "-l") == 0) {
+    authorsl();
+  } else if (strcmp(arg, "-n") == 0) {
+    authorsn();
+  } 
+}
+
+//Funcion que realiza el comando N de la lista hist
+void command(struct command* commandList, int N, int *terminado, int *commandCount) {
+
+  struct command* aux = commandList;
+  while (aux != NULL) {
+    if (aux -> number == N) {
+      procesar_comando(aux -> command, terminado, commandList, commandCount);
+      break;
+    }
+    aux = aux -> next;
+  }
+
+}
+
 //Funcion encargada de llamar a la funcion correspondiente
-void procesar_comando(const char *comando, int *terminado, struct command* commandList) {
-  if (strcmp(comando, "exit") == 0 ||strcmp(comando, "quit") == 0 || strcmp(comando, "bye") == 0)
+void procesar_comando(char *comando, int *terminado, struct command* commandList, int *commandCount) {
+  char *comand = strtok(comando, " ");
+  char *arg = strtok(NULL, " ");
+  if (strcmp(comand, "exit") == 0 ||strcmp(comand, "quit") == 0 || strcmp(comand, "bye") == 0)
     *terminado = 0;
-  else if (strcmp(comando, "date") == 0)
+  else if (strcmp(comand, "date") == 0)
     date();
-  else if(strcmp(comando, "time") == 0)
+  else if(strcmp(comand, "time") == 0)
     times();
-  else if (strcmp(comando, "infosys") == 0)
+  else if (strcmp(comand, "infosys") == 0)
     systemInfo();
-  else if (strcmp(comando, "hist") == 0)
-    printCommands(commandList);
+  else if (strcmp(comand, "authors") == 0)
+    authors(arg);
+  else if (strcmp(comand, "comand") == 0)
+    command(commandList, atoi(arg), terminado, commandCount);
+  else if (strcmp(comand, "hist") == 0)
+    hist(commandList, arg, commandCount);
 }
 
 int main() {
@@ -123,10 +180,10 @@ int main() {
     comando[strcspn(comando, "\n")] = '\0'; // Eliminamos el carácter de salto de línea
 
     addCommand(&commandList, &commandCount, comando);
-    procesar_comando(comando, &terminado, commandList);
+    procesar_comando(comando, &terminado, commandList, &commandCount);
   }
 
-  clearCommands(commandList); //Vacia la lista de comandos antes de terminar el shell
+  clearCommands(commandList, &commandCount); //Vacia la lista de comandos antes de terminar el shell
 
   return 0;
 }
