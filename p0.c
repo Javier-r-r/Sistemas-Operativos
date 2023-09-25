@@ -17,6 +17,7 @@
 #include <stdbool.h>
 #include "head_list.h"
 
+//Commprueba si el número está en el historial
 bool isNumberHist(char* str){
   for (int j=0; j < strlen(str) ; j++){
     if(str[j]<48 || str[j]>57){
@@ -51,6 +52,7 @@ void addCommand(tList commandList, char *command) {
   }
 }
 
+//Muestra el historial de comandos
 void Cmd_hist(tList *commandList, char *arg){
   int ncmd;
 
@@ -87,10 +89,11 @@ void Cmd_date() {
   char fecha[11]; // Espacio suficiente para almacenar "DD/MM/YYYY\0"
   strftime(fecha, sizeof(fecha), "%d/%m/%Y", tm_info);
 
-  // Imprimir la fecha formateada
+  // Imprimir la fecha en el formato correcto
   printf("Fecha actual: %s\n", fecha);
 }
 
+//Imprime información sobre el comando que se le pasa, si no pasa comando muestra por pantalla los comandos disponibles
 void Cmd_help(char *arg)
 {
   if(arg == NULL){
@@ -183,7 +186,7 @@ void Cmd_authors(char *arg) {
 
 //Funcion encargada de llamar a la funcion correspondiente
 void procesar_comando(char *comando, tList *commandList) {
-  if (comando[0] == '\0') {
+  if (comando[0] == '\0') { //Si el usuario solo pulsa enter termina la funcion y vuelve al bucle
     return;
   } else {
     addCommand(*commandList, comando);
