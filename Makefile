@@ -1,8 +1,10 @@
-OBJ = a.out
+EXECUTABLE=p0
+CFLAGS= -Wall -g
 
-p0: p0.o
-	gcc -Wall p0.c
-run:
-	./${OBJ}
+shell: p0.c
+	gcc $(CFLAGS) -o $(EXECUTABLE) p0.c head_list.c head_list.h
+
+P0: P0.o
+	gcc -Wall P0.c
 valgrind: 
-	valgrind --leak-check=full --show-reachable=yes ./${OBJ}
+	valgrind --leak-check=full --show-reachable=yes ./${EXECUTABLE}

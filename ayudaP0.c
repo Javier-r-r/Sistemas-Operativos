@@ -1,11 +1,37 @@
 /*las funciones entre puntos hay que implementarlas */
 
+struct FicheroAbierto {
+    int descriptor;  // Descriptor de archivo
+    int modo;        // Modo de apertura (lectura, escritura, etc.)
+    char nombre[256]; // Nombre del archivo
+};
+
+// Función para agregar una entrada a la tabla de archivos abiertos
+void AnadirAFicherosAbiertos(struct FicheroAbierto *ficherosAbiertos, int *numFicherosAbiertos, int descriptor, int modo, const char *nombre) {
+    if (*numFicherosAbiertos < 100) { // Suponemos que hay un máximo de 100 archivos abiertos
+        ficherosAbiertos[*numFicherosAbiertos].descriptor = descriptor;
+        ficherosAbiertos[*numFicherosAbiertos].modo = modo;
+        strncpy(ficherosAbiertos[*numFicherosAbiertos].nombre, nombre, sizeof(ficherosAbiertos[*numFicherosAbiertos].nombre));
+        (*numFicherosAbiertos)++;
+    } else {
+        printf("No se pueden abrir más archivos. La tabla de archivos abiertos está llena.\n");
+    }
+}
+
+void ListarFicherosAbiertos(const struct FicheroAbierto *ficherosAbiertos, int numFicherosAbiertos) {
+    printf("Ficheros abiertos:\n");
+
+    for (int i = 0; i < numFicherosAbiertos; i++) {
+        printf("Descriptor: %d, Modo: %d, Nombre: %s\n", ficherosAbiertos[i].descriptor, ficherosAbiertos[i].modo, ficherosAbiertos[i].nombre);
+    }
+}
+
 void Cmd_open (char * tr[])
 {
     int i,df, mode=0;
     
     if (tr[0]==NULL) { /*no hay parametro*/
-       ..............ListarFicherosAbiertos...............
+        ListarFicherosAbiertos();
         return;
     }
     for (i=1; tr[i]!=NULL; i++)
