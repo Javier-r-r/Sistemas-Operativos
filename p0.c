@@ -17,20 +17,6 @@
 #include <stdbool.h>
 #include "head_list.h"
 
-//Commprueba si el número está en el historial
-bool isNumberHist(char* str){
-  for (int j=0; j < strlen(str) ; j++){
-    if(str[j]<48 || str[j]>57){
-         
-      if(str[j] != 45 && j>0){ //45 is "-" sign in ASCII table
-        return false;
-      }
-      if(j>0 && str[j]==45) return false; //avoid negative numbers with minus sign within it
-    }
-  }
-  return true;
-}
-
 //Funcion que realiza el comando N de la lista hist
 void Cmd_comand(tList commandList, int N) {
 
@@ -61,10 +47,8 @@ void Cmd_hist(tList *commandList, char *arg){
   }else if(strcmp(arg,"-c") == 0){
     freeList(commandList);
   }else if (atoi(arg)){
-    if(isNumberHist(arg)){
-      ncmd=(int) abs(strtol(arg,NULL,10));
-      printUntilN(*commandList, ncmd);
-    } else printf("Please input a valid number for this command\n");
+    ncmd=(int) (abs(strtol(arg,NULL,10)));
+    printUntilN(*commandList, ncmd);
   }
 }
 
