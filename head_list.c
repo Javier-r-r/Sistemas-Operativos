@@ -91,6 +91,7 @@ void freeList(tList *L){
         p=p->next;
         removeElement(aux,L);
     }
+    free(&L);
 }
 
 void printUntilN(tList L, int n){
