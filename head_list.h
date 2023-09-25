@@ -13,7 +13,21 @@ typedef struct tItemL{
     int index;
 }tItemL;
 
+typedef struct tItemF{
+  int descriptor;
+  int modo;
+  char nombre[256];
+}tItemF;
+
+typedef struct tNodeF *tPosF;
 typedef struct tNode *tPosL;
+
+struct tNodeF{
+  tItemF file;
+  tPosL next;
+};
+typedef struct tNodeF *tListF;
+
 struct tNode{
     tItemL data;
     tPosL next;
@@ -43,6 +57,8 @@ void freeList(tList *L);
 void printUntilN(tList L, int n);
 
 tItemL getItem(int n, tList L);
+
+int countItems(tList L);
 
 
 #endif //ASSIG1_LIST_H

@@ -109,3 +109,11 @@ tItemL getItem(int n, tList L){
     for(q=L->next;q->data.index!=n;q=q->next);
     return q->data;
 }
+
+int countItems(tList L) {
+  int count = 0;
+  tPosL p;
+  for (p = first(L); p != NULL; p = next(p, L))
+    count ++;
+  return count;
+}

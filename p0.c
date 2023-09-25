@@ -1,5 +1,5 @@
 //Javier Rodriguez Rodriguez || j.rrodriguez1@udc.es
-
+//Miguel Corton Deben || mcortond@udc.es
 
 #include <stdio.h>
 #include <string.h>
@@ -19,22 +19,29 @@
 
 //Funcion que realiza el comando N de la lista hist
 void Cmd_comand(tList commandList, int N) {
-
-  tList aux = commandList;
-  while (aux != NULL) {
-    if (aux->data.index == N) {
-      procesar_comando(strtok(aux->data.comando, " "), &commandList);
-      break;
+  if (countItems(commandList) < N) {
+    printf("No hay tantos comandos en hist\n");
+  } else {
+    tList aux = commandList;
+    while (aux != NULL) {
+      if (aux->data.index == N - 1) {
+        if (aux->data.index == countItems(commandList)) {
+          printf("Imposible, bucle infinito\n");
+          break;
+        } else {
+          procesar_comando(aux->data.comando, &commandList);
+          break;
+        }
+      }
+      aux = aux -> next;
     }
-    aux = aux -> next;
   }
-
 }
 
 //Función para añadir comandos al historial
-void addCommand(tList commandList, char *command) {
+void addCommand(tList *commandList, char *command) {
   if (command != NULL) {
-    insertElement(command, &commandList);
+    insertElement(command, commandList);
   }
 }
 
@@ -154,6 +161,19 @@ void Cmd_infosys() {
   printf("  Release: %s\n", Cmd_infosys.release);
   printf("  Version: %s\n", Cmd_infosys.version);
   printf("  Machine: %s\n", Cmd_infosys.machine);
+
+}
+
+void Cmd_chdir(char *arg){
+    char dir[MAX];
+    if (arg==NULL)
+        printf("%s \n", getcwd(dir,MAX));
+    else if(chdir(arg) == 0){
+        printf("You changed of directory\n");
+        printf("%s \n", getcwd(dir,MAX));
+    }else if(chdir(arg)==-1){
+        perror("Cannot change directory");
+    }
 }
 
 //Funcion que maneja las opciones de la funcion Cmd_authors
@@ -169,29 +189,34 @@ void Cmd_authors(char *arg) {
 }
 
 //Funcion encargada de llamar a la funcion correspondiente
-void procesar_comando(char *comando, tList *commandList) {
+void procesar_comando(char comando[], tList *commandList) {
   if (comando[0] == '\0') { //Si el usuario solo pulsa enter termina la funcion y vuelve al bucle
     return;
   } else {
-    addCommand(*commandList, comando);
+    addCommand(commandList, comando);
     char *comand = strtok(comando, " ");
     char *arg = strtok(NULL, " ");
-    if (strcmp(comand, "exit") == 0 ||strcmp(comand, "quit") == 0 || strcmp(comand, "bye") == 0)
+    if (!strcmp(comand, "exit") || !strcmp(comand, "quit") || !strcmp(comand, "bye")) {
+      freeList(commandList);
       exit(0);
-    else if (strcmp(comand, "date") == 0)
+    } else if (!strcmp(comand, "date"))
       Cmd_date();
-    else if(strcmp(comand, "time") == 0)
+    else if(!strcmp(comand, "time"))
       Cmd_time();
-    else if (strcmp(comand, "infosys") == 0)
+    else if (!strcmp(comand, "infosys"))
       Cmd_infosys();
-    else if (strcmp(comand, "authors") == 0)
+    else if (!strcmp(comand, "authors"))
       Cmd_authors(arg);
-    else if (strcmp(comand, "comand") == 0)
+    else if (!strcmp(comand, "comand"))
       Cmd_comand(*commandList, atoi(arg));
-    else if (strcmp(comand, "hist") == 0)
+    else if (!strcmp(comand, "hist"))
       Cmd_hist(commandList, arg);
-    else if(strcmp(comand, "pid") == 0)
+    else if(!strcmp(comand, "pid"))
       Cmd_pid(arg);
+    else if (!strcmp(comand, "chdir"))
+      Cmd_chdir(arg);
+    else if (!strcmp(comand, "help"))
+      Cmd_help(arg);
   }
 }
 
@@ -209,8 +234,6 @@ int main() {
 
     procesar_comando(comando, &commandList);
   }
-
-  freeList(&commandList); //Vacia la lista de comandos antes de terminar el shell
 
   return 0;
 }
