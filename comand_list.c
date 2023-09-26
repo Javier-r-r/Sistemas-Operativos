@@ -1,6 +1,6 @@
 //Javier Rodriguez Rodriguez
 //Miguel Cortón Debén
-#include "head_list.h"
+#include "comand_list.h"
 #include <stdio.h>
 #include <malloc.h>
 #include <string.h>

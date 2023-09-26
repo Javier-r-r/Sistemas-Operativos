@@ -15,7 +15,7 @@
 #include <grp.h>
 #include <dirent.h>
 #include <stdbool.h>
-#include "head_list.h"
+#include "comand_list.h"
 
 //Funcion que realiza el comando N de la lista hist
 void Cmd_comand(tList commandList, int N) {
