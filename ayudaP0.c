@@ -62,9 +62,10 @@ void Cmd_close (char *tr[])
 
     
     if (close(df)==-1)
-        perror("Inposible cerrar descriptor");
+        perror("Imposible cerrar descriptor");
     else
        ........EliminarDeFicherosAbiertos......
+       printf("El archivo ha sido eliminado\n");
 }
 
 void Cmd_dup (char * tr[])
