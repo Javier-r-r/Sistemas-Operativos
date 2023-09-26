@@ -57,7 +57,8 @@ void Cmd_close (char *tr[])
     
     if (tr[0]==NULL || (df=atoi(tr[0]))<0) { /*no hay parametro*/
       ..............ListarFicherosAbiertos............... /*o el descriptor es menor que 0*/
-        return;
+      ListarFicheroAbierto();
+      return;
     }
 
     
