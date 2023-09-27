@@ -15,7 +15,7 @@
 #include <grp.h>
 #include <dirent.h>
 #include <stdbool.h>
-#include "head_list.h"
+#include "comand_list.h"
 
 //Funcion que realiza el comando N de la lista hist
 void Cmd_comand(tList commandList, int N) {
@@ -98,7 +98,7 @@ void Cmd_help(char *arg)
     printf("hist -N prints the first N commands\n");
   }
   else if (!strcmp(arg,"comando")){
-    printf("comando N: Repeats command number N (from historic list)\n");
+    printf("comand N: Repeats command number N (from historic list)\n");
   }
   else if (!strcmp(arg,"infosys")){
     printf("infosys: Prints information on the machine running the shell (as obtained via the uname system call/library function)\n");

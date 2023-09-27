@@ -61,5 +61,5 @@ tItemL getItem(int n, tList L);
 int countItems(tList L);
 
 
-#endif //ASSIG1_LIST_H
+#endif //HIST_LIST
 
