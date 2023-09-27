@@ -1,5 +1,5 @@
-//Javier Rodriguez Rodriguez
-//Miguel Cortón Debén
+//Javier Rodriguez Rodriguez, grupo 
+//Miguel Cortón Debén, grupo
 #include "comand_list.h"
 #include <stdio.h>
 #include <malloc.h>

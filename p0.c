@@ -16,6 +16,7 @@
 #include <dirent.h>
 #include <stdbool.h>
 #include "comand_list.h"
+#include "ficheros_list.h"
 
 //Funcion que realiza el comando N de la lista hist
 void Cmd_comand(tList commandList, int N) {
