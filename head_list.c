@@ -104,7 +104,7 @@ void printUntilN(tList L, int n){
 }
 
 tItemL getItem(int n, tList L){
-
+    n--;
     tPosL q;
     for(q=L->next;q->data.index!=n;q=q->next);
     return q->data;
