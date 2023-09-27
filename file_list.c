@@ -1,6 +1,6 @@
 //Javier Rodriguez Rodriguez
 //Miguel Cortón Debén
-#include "comand_list.h"
+#include "file_list.h"
 #include <stdio.h>
 #include <malloc.h>
 #include <string.h>
@@ -11,8 +11,8 @@ bool createNode(tPosL *p){
 }
 
 
-void createList(tList *L){
-    tPosL p;
+void createListF(tListF *L){
+    tPosF p;
     if(createNode(&p)){
     	*L= p;
     	(*L)->next=LNULL;
@@ -20,38 +20,38 @@ void createList(tList *L){
     
 }
 
-bool isEmptyList(tList L){
+bool isEmptyListF(tListF L){
     return (L->next==LNULL);
 }
 
-tPosL first(tList L){
+tPosF firstF(tListF L){
     return L->next;
 }
 
-tPosL last(tList L){
-    tPosL p;
+tPosF lastF(tListF L){
+    tPosF p;
     for(p=L->next;p->next!=LNULL;p=p->next);
     return p;
 }
 
-tPosL next(tPosL p, tList L){
+tPosF nextF(tPosF p, tListF L){
     return(p->next);
 }
 
-bool insertElement(char *data, tList *L){
-    tPosL m, p;
+bool insertElementF(char *file, tListF *L){
+    tPosF m, p;
     if(!createNode(&m))return false;
     else{
-        strcpy(m->data.comando, data);
+        strcpy(m->file.nombre, data);
         m->next=LNULL;
-        m->data.index=0;
+        m->file.index=0;
     }
     if((*L)->next==LNULL){
         (*L)->next=m;
         return true;
     }else{
         for(p=*L; p->next!=LNULL;p=p->next){ 
-            m->data.index++;
+            m->file.index++;
         }
         p->next=m;
     
@@ -59,7 +59,7 @@ bool insertElement(char *data, tList *L){
    }
 }
 
-void removeElement(tPosL p, tList *L){
+void removeElementF(tPosF p, tListF *L){
     
     if(p->next != LNULL){
         (*L)->next=p->next; 
@@ -71,18 +71,18 @@ void removeElement(tPosL p, tList *L){
 }
 
 
-void printList(tList L){
-    tPosL p=L->next;
+void printListF(tListF L){
+    tPosF p=L->next;
        
        while(p != LNULL){
-            printf("%4d) %s\n",p->data.index+1,p->data.comando);
+            printf("%4d) %s\n",p->file.index+1,p->file.nombre);
             p=p->next;
         }
     
 }
 
-void freeList(tList *L){
-    tPosL p, aux;
+void freeListF(tListF *L){
+    tPosF p, aux;
     
     while((*L)->next != LNULL){
         p = (*L)->next;
@@ -92,24 +92,24 @@ void freeList(tList *L){
     }
 }
 
-void printUntilN(tList L, int n){
-    tPosL p=L->next;
+void printUntilNF(tListF L, int n){
+    tPosF p=L->next;
 
     while (p != LNULL){
-    	if(p->data.index < n)
-        printf("%4d) %s\n",p->data.index+1,p->data.comando);
+    	if(p->file.index < n)
+        printf("%4d) %s\n",p->file.index+1,p->file.nombre);
         p=p->next;
     }
 }
 
-tItemL getItem(int n, tList L){
+tItemF getItemF(int n, tListF L){
     n--;
-    tPosL q;
-    for(q=L->next;q->data.index!=n;q=q->next);
-    return q->data;
+    tPosF q;
+    for(q=L->next;q->file.index!=n;q=q->next);
+    return q->file;
 }
 
-int countItems(tList L) {
+int countItemsF(tListF L) {
   int count = 0;
   tPosL p;
   for (p = first(L); p != NULL; p = next(p, L))

@@ -19,7 +19,7 @@
 
 //Funcion que realiza el comando N de la lista hist
 void Cmd_comand(tList commandList, int N) {
-  if (countItems(commandList) < N) {
+  if (countItems(commandList) <= N) {
     printf("No hay tantos comandos en hist\n");
   } else {
     tItemL item = getItem(N, commandList);
