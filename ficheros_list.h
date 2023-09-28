@@ -10,8 +10,8 @@
 
 typedef struct tItemF{
   int mode;
-  int descriptor;
   int index;
+  int descriptor;
   char nombre[MAX];
 }tItemF;
 
