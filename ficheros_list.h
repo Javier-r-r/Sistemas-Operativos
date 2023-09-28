@@ -24,6 +24,8 @@ struct tNodeF{
 
 typedef struct tNodeF *tListF;
 
+char *NombreFicheroDescriptor(int descriptor, tListF L);
+
 void createListF(tListF *L);
 
 bool isEmptyListF(tListF L);

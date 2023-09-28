@@ -51,10 +51,24 @@ void Cmd_close (char *arg, tListF *fileList)
     }
 }
 
-void Cmd_dup (char * tr[])
+char *NombreFicheroDescriptor(int descriptor, tListF L) {
+    tPosF current = firstF(L);
+
+    while (current != NULL) {
+        if (current->file.descriptor == descriptor) {
+            return current->file.nombre;
+        }
+        current = current->next;
+    }
+
+    return NULL; // Si no se encuentra el descriptor, devolvemos NULL
+}
+
+void Cmd_dup (char *arg, tListF fileList)
 { 
     int df, duplicado;
-    char aux[MAXNAME],*p;
+    char aux[MAX],*p, *tr[MAX];
+    tr = TrocearCadena(arg, tr);
     
     if (tr[0]==NULL || (df=atoi(tr[0]))<0) { /*no hay parametro*/
         ListOpenFiles(-1);                 /*o el descriptor es menor que 0*/
@@ -62,7 +76,8 @@ void Cmd_dup (char * tr[])
     }
     
  
-    p=.....NombreFicheroDescriptor(df).......;
+    p=NombreFicheroDescriptor(df, fileList);
+
     sprintf (aux,"dup %d (%s)",df, p);
     .......AnadirAFicherosAbiertos......duplicado......aux.....fcntl(duplicado,F_GETFL).....;
 }
