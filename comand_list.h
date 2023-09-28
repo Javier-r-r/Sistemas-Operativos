@@ -4,6 +4,7 @@
 #define HIST_LIST
 
 #include <stdbool.h>
+#include "ficheros_list.h"
 #define LNULL NULL
 #define MAX 1024
 
@@ -21,7 +22,7 @@ struct tNode{
 };
 typedef struct tNode *tList;
 
-void procesar_comando(char *arg, tList *commandList);
+void procesar_comando(char *arg, tList commandList, tListF fileList);
 
 void createList(tList *L);
 

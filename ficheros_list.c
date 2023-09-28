@@ -5,23 +5,23 @@
 #include <malloc.h>
 #include <string.h>
 
-bool createNode(tPosL *p){
-    *p=malloc(sizeof (struct tNode));
-    return (*p != LNULL);
+bool createNodeF(tPosF *p){
+    *p=malloc(sizeof (struct tNodeF));
+    return (*p != FNULL);
 }
 
 
 void createListF(tListF *L){
     tPosF p;
-    if(createNode(&p)){
+    if(createNodeF(&p)){
     	*L= p;
-    	(*L)->next=LNULL;
+    	(*L)->next=FNULL;
     }
     
 }
 
 bool isEmptyListF(tListF L){
-    return (L->next==LNULL);
+    return (L->next==FNULL);
 }
 
 tPosF firstF(tListF L){
@@ -30,7 +30,7 @@ tPosF firstF(tListF L){
 
 tPosF lastF(tListF L){
     tPosF p;
-    for(p=L->next;p->next!=LNULL;p=p->next);
+    for(p=L->next;p->next!=FNULL;p=p->next);
     return p;
 }
 
@@ -38,19 +38,19 @@ tPosF nextF(tPosF p, tListF L){
     return(p->next);
 }
 
-bool insertElementF(char *file, tListF *L){
+bool insertElementF(tItemF item, tListF *L){
     tPosF m, p;
-    if(!createNode(&m))return false;
+    if(!createNodeF(&m))return false;
     else{
-        strcpy(m->file.nombre, data);
-        m->next=LNULL;
+        m->file=item;
+        m->next=FNULL;
         m->file.index=0;
     }
-    if((*L)->next==LNULL){
+    if((*L)->next==FNULL){
         (*L)->next=m;
         return true;
     }else{
-        for(p=*L; p->next!=LNULL;p=p->next){ 
+        for(p=*L; p->next!=FNULL;p=p->next){ 
             m->file.index++;
         }
         p->next=m;
@@ -59,60 +59,86 @@ bool insertElementF(char *file, tListF *L){
    }
 }
 
-void removeElementF(tPosF p, tListF *L){
+void removeElementF(int df, tListF *L){
     
-    if(p->next != LNULL){
-        (*L)->next=p->next; 
+    tPosF current = firstF(*L);
+    tPosF previous = NULL;
+
+    while (current != NULL) {
+        if (current->file.descriptor == df) {
+            // El elemento actual tiene el descriptor que queremos eliminar
+            if (previous == NULL) {
+                // Si no hay elemento anterior, significa que es el primer elemento
+                *L = current->next;
+            } else {
+                // Si hay un elemento anterior, enlazamos el anterior con el siguiente
+                previous->next = current->next;
+            }
+
+            // Liberamos la memoria del elemento actual
+            free(current);
+            return;
+        }
+
+        previous = current;
+        current = current->next;
     }
-    if(p->next ==LNULL){
-        (*L)->next=LNULL;
-    }
-    free(p);
 }
+
 
 
 void printListF(tListF L){
     tPosF p=L->next;
        
-       while(p != LNULL){
+       while(p != FNULL){
             printf("%4d) %s\n",p->file.index+1,p->file.nombre);
             p=p->next;
         }
     
 }
 
+void removeElementAux(tPosF p, tListF *L){
+    
+    if(p->next != FNULL){
+        (*L)->next=p->next; 
+    }
+    if(p->next ==FNULL){
+        (*L)->next=FNULL;
+    }
+    free(p);
+}
+
 void freeListF(tListF *L){
     tPosF p, aux;
     
-    while((*L)->next != LNULL){
+    while((*L)->next != FNULL){
         p = (*L)->next;
         aux = p;
         p=p->next;
-        removeElement(aux,L);
+        removeElementAux(aux,L);
     }
 }
 
 void printUntilNF(tListF L, int n){
     tPosF p=L->next;
 
-    while (p != LNULL){
+    while (p != FNULL){
     	if(p->file.index < n)
         printf("%4d) %s\n",p->file.index+1,p->file.nombre);
         p=p->next;
     }
 }
 
-tItemF getItemF(int n, tListF L){
-    n--;
+tItemF getItemF(char *file, tListF L){
     tPosF q;
-    for(q=L->next;q->file.index!=n;q=q->next);
+    for(q=L->next;q->file.nombre!=file;q=q->next);
     return q->file;
 }
 
 int countItemsF(tListF L) {
   int count = 0;
-  tPosL p;
-  for (p = first(L); p != NULL; p = next(p, L))
+  tPosF p;
+  for (p = firstF(L); p != NULL; p = nextF(p, L))
     count ++;
   return count;
 }

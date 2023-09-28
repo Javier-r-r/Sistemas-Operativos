@@ -16,15 +16,23 @@
 #include <dirent.h>
 #include <stdbool.h>
 #include "comand_list.h"
-#include "ficheros_list.h"
+
+int TrocearCadena(char * cadena, char * trozos[]){
+  int i=1;
+  if ((trozos[0]=strtok(cadena," \n\t"))==NULL)
+    return 0;
+  while ((trozos[i]=strtok(NULL," \n\t"))!=NULL)
+    i++;
+  return i;
+}
 
 //Funcion que realiza el comando N de la lista hist
-void Cmd_comand(tList commandList, int N) {
+void Cmd_comand(tList commandList, tListF fileList, int N) {
   if (countItems(commandList) <= N) {
     printf("No hay tantos comandos en hist\n");
   } else {
     tItemL item = getItem(N, commandList);
-    procesar_comando(item.comando, &commandList);
+    procesar_comando(item.comando, commandList, fileList);
   }
 }
 
@@ -47,6 +55,57 @@ void Cmd_hist(tList *commandList, char *arg){
     ncmd=(int) (abs(strtol(arg,NULL,10)));
     printUntilN(*commandList, ncmd);
   }
+}
+
+void Cmd_close (char *arg, tListF fileList)
+{ 
+    int df;
+    
+    if (arg==NULL || (df=atoi(arg))<0) { /*no hay parametro*/
+        printListF(fileList);
+        return;
+    }
+
+    
+    if (close(df)==-1)
+        perror("Inposible cerrar descriptor");
+    else {
+        removeElementF(df, &fileList);
+        printf("Descriptor %d cerrado\n", df);
+    }
+}
+
+void Cmd_open (char *arg, tListF fileList)
+{
+    int i,df, mode=0;
+    
+    if (arg==NULL) { /*no hay parametro*/
+        printListF(fileList);
+        return;
+    }
+    char *tr[MAX];
+    TrocearCadena(arg, tr);
+    for (i=1; tr[i]!=NULL; i++) {
+      if (!strcmp(tr[i],"cr")) mode=O_CREAT;
+      else if (!strcmp(tr[i],"ex")) mode=O_EXCL;
+      else if (!strcmp(tr[i],"ro")) mode=O_RDONLY; 
+      else if (!strcmp(tr[i],"wo")) mode=O_WRONLY;
+      else if (!strcmp(tr[i],"rw")) mode=O_RDWR;
+      else if (!strcmp(tr[i],"ap")) mode=O_APPEND;
+      else if (!strcmp(tr[i],"tr")) mode=O_TRUNC; 
+      else break;
+    }
+    if ((df=open(tr[0],mode,0777))==-1)
+        perror ("Imposible abrir fichero");
+    else{
+      open(tr[0], mode, 0777);
+      tItemF newItem;
+      newItem.descriptor = df;
+      newItem.mode = mode;
+      strncpy(newItem.nombre, tr[0], MAX);
+      insertElementF(newItem, &fileList);
+      printf("Añadida entrada a la tabla ficheros abiertos: descriptor %d, modo %d, nombre %s\n", df, mode, tr[0]);
+    }
 }
 
 //Imprime el pid del comando que se esta ejecutando el la red 
@@ -179,13 +238,16 @@ void Cmd_authors(char *arg) {
 }
 
 //Funcion encargada de llamar a la funcion correspondiente
-void procesar_comando(char comando[], tList *commandList) {
+void procesar_comando(char comando[], tList commandList, tListF fileList) {
 
   
   char *comand = strtok(comando, " ");
   char *arg = strtok(NULL, " ");
   if (!strcmp(comand, "exit") || !strcmp(comand, "quit") || !strcmp(comand, "bye")) {
-    freeList(commandList);
+    freeList(&commandList);
+    freeListF(&fileList);
+    free(commandList);
+    free(fileList);
     exit(0);
   } else if (!strcmp(comand, "date"))
     Cmd_date();
@@ -196,22 +258,28 @@ void procesar_comando(char comando[], tList *commandList) {
   else if (!strcmp(comand, "authors"))
     Cmd_authors(arg);
   else if (!strcmp(comand, "comand"))
-    Cmd_comand(*commandList, atoi(arg));
+    Cmd_comand(commandList, fileList, atoi(arg));
   else if (!strcmp(comand, "hist"))
-    Cmd_hist(commandList, arg);
+    Cmd_hist(&commandList, arg);
   else if(!strcmp(comand, "pid"))
     Cmd_pid(arg);
   else if (!strcmp(comand, "chdir"))
     Cmd_chdir(arg);
   else if (!strcmp(comand, "help"))
     Cmd_help(arg);
+  else if (!strcmp(comand, "open"))
+    Cmd_open(arg, fileList);
+  else 
+    printf("Command not found\n");
   
 }
 
 int main() {
-  char comando[256]; // Usamos un array de caracteres para almacenar el comando
+  char comando[MAX]; // Usamos un array de caracteres para almacenar el comando
   tList commandList;
+  tListF fileList;
   createList(&commandList);
+  createListF(&fileList);
 
   while (1) {
     printf("> ");
@@ -224,7 +292,7 @@ int main() {
       continue;
     else {
       addCommand(&commandList, comando);
-      procesar_comando(comando, &commandList);
+      procesar_comando(comando, commandList, fileList);
     }
   }
 

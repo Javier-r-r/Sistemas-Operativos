@@ -1,52 +1,52 @@
 //Javier Rodriguez Rodriguez, grupo 
 //Miguel Cortón Debén, grupo
-#ifndef HIST_LIST
-#define HIST_LIST
+#ifndef FILE_LIST
+#define FILE_LIST
 
 #include <stdbool.h>
-#define LNULL NULL
+#define FNULL NULL
 #define MAX 1024
 
 
-typedef struct tItemL{
-    char comando[MAX];
-    int index;
-}tItemL;
+typedef struct tItemF{
+  int mode;
+  int descriptor;
+  int index;
+  char nombre[MAX];
+}tItemF;
 
-typedef struct tNode *tPosL;
+typedef struct tNodeF *tPosF;
 
-struct tNode{
-    tItemL data;
-    tPosL next;
+struct tNodeF{
+    tItemF file;
+    tPosF next;
 };
-typedef struct tNode *tList;
 
-void procesar_comando(char *arg, tList *commandList);
+typedef struct tNodeF *tListF;
 
-void createList(tList *L);
+void createListF(tListF *L);
 
-bool isEmptyList(tList L);
+bool isEmptyListF(tListF L);
 
-tPosL first(tList L);
+tPosF firstF(tListF L);
 
-tPosL last(tList L);
+tPosF lastF(tListF L);
 
-tPosL next(tPosL p, tList L);
+tPosF nextF(tPosF p, tListF L);
 
-bool insertElement(char *data, tList *L);
+bool insertElementF(tItemF item, tListF *L);
 
-void removeElement(tPosL p, tList *L);
+void removeElementF(int df, tListF *L);
 
-void printList(tList L);
+void printListF(tListF L);
 
-void freeList(tList *L);
+void freeListF(tListF *L);
 
-void printUntilN(tList L, int n);
+void printUntilNF(tListF L, int n);
 
-tItemL getItem(int n, tList L);
+tItemF getItemF(char *file, tListF L);
 
-int countItems(tList L);
+int countItemsF(tListF L);
 
 
-#endif //HIST_LIST
-
+#endif //FILE_LIST

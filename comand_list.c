@@ -85,7 +85,7 @@ void freeList(tList *L){
     tPosL p, aux;
     
     while((*L)->next != LNULL){
-        p = (*L)->next;
+        p = (*L) -> next;
         aux = p;
         p=p->next;
         removeElement(aux,L);
