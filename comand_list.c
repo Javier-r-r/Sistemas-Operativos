@@ -1,6 +1,6 @@
-//Javier Rodriguez Rodriguez
-//Miguel Cortón Debén
-#include "head_list.h"
+//Javier Rodriguez Rodriguez, grupo 
+//Miguel Cortón Debén, grupo
+#include "comand_list.h"
 #include <stdio.h>
 #include <malloc.h>
 #include <string.h>
@@ -68,7 +68,6 @@ void removeElement(tPosL p, tList *L){
         (*L)->next=LNULL;
     }
     free(p);
-      
 }
 
 
@@ -86,7 +85,7 @@ void freeList(tList *L){
     tPosL p, aux;
     
     while((*L)->next != LNULL){
-        p = (*L)->next;
+        p = (*L) -> next;
         aux = p;
         p=p->next;
         removeElement(aux,L);
@@ -104,7 +103,7 @@ void printUntilN(tList L, int n){
 }
 
 tItemL getItem(int n, tList L){
-
+    n--;
     tPosL q;
     for(q=L->next;q->data.index!=n;q=q->next);
     return q->data;

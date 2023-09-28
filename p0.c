@@ -15,26 +15,24 @@
 #include <grp.h>
 #include <dirent.h>
 #include <stdbool.h>
-#include "head_list.h"
+#include "comand_list.h"
+
+int TrocearCadena(char * cadena, char * trozos[]){
+  int i=1;
+  if ((trozos[0]=strtok(cadena," \n\t"))==NULL)
+    return 0;
+  while ((trozos[i]=strtok(NULL," \n\t"))!=NULL)
+    i++;
+  return i;
+}
 
 //Funcion que realiza el comando N de la lista hist
-void Cmd_comand(tList commandList, int N) {
-  if (countItems(commandList) < N) {
+void Cmd_comand(tList commandList, tListF fileList, int N) {
+  if (countItems(commandList) <= N) {
     printf("No hay tantos comandos en hist\n");
   } else {
-    tList aux = commandList;
-    while (aux != NULL) {
-      if (aux->data.index == N - 1) {
-        if (aux->data.index == countItems(commandList)) {
-          printf("Imposible, bucle infinito\n");
-          break;
-        } else {
-          procesar_comando(aux->data.comando, &commandList);
-          break;
-        }
-      }
-      aux = aux -> next;
-    }
+    tItemL item = getItem(N, commandList);
+    procesar_comando(item.comando, commandList, fileList);
   }
 }
 
@@ -56,6 +54,78 @@ void Cmd_hist(tList *commandList, char *arg){
   }else if (atoi(arg)){
     ncmd=(int) (abs(strtol(arg,NULL,10)));
     printUntilN(*commandList, ncmd);
+  }
+}
+
+void Cmd_close (char *arg, tListF fileList) { 
+  int df;
+    
+  if (arg==NULL || (df=atoi(arg))<0) { /*no hay parametro*/
+    printListF(fileList);
+    return;
+  }
+  
+  if (close(df)==-1)
+    perror("Inposible cerrar descriptor");
+  else {
+    removeElementF(df, &fileList);
+    printf("Descriptor %d cerrado\n", df);
+  }
+}
+
+void Cmd_open (char *arg, tListF fileList) {
+  int i,df, mode=0;
+    
+  if (arg==NULL) { /*no hay parametro*/
+    printListF(fileList);
+    return;
+  }
+  char *tr[MAX];
+  TrocearCadena(arg, tr);
+  for (i=1; tr[i]!=NULL; i++) {
+    if (!strcmp(tr[i],"cr")) mode=O_CREAT;
+    else if (!strcmp(tr[i],"ex")) mode=O_EXCL;
+    else if (!strcmp(tr[i],"ro")) mode=O_RDONLY; 
+    else if (!strcmp(tr[i],"wo")) mode=O_WRONLY;
+    else if (!strcmp(tr[i],"rw")) mode=O_RDWR;
+    else if (!strcmp(tr[i],"ap")) mode=O_APPEND;
+    else if (!strcmp(tr[i],"tr")) mode=O_TRUNC; 
+    else break;
+  }
+  if ((df=open(tr[0],mode,0777))==-1)
+    perror ("Imposible abrir fichero");
+  else{
+    open(tr[0], mode, 0777);
+    tItemF newItem;
+    newItem.descriptor = df;
+    newItem.mode = mode;
+    strncpy(newItem.nombre, tr[0], MAX);
+    insertElementF(newItem, &fileList);
+    printf("Añadida entrada a la tabla ficheros abiertos: descriptor %d, modo %d, nombre %s\n", df, mode, tr[0]);
+  }
+}
+
+void Cmd_dup (char *arg, tListF fileList) { 
+  int df, duplicado;
+  char aux[MAX],*p, *tr[MAX];
+  TrocearCadena(arg, tr);
+    
+  if (tr[0]==NULL || (df=atoi(tr[0]))<0) { /*no hay parametro*/
+    printListF(fileList);                 /*o el descriptor es menor que 0*/
+    return;
+  }
+ 
+  p=NombreFicheroDescriptor(df, fileList);
+
+  sprintf (aux,"dup %d (%s)",df, p);
+  if ((duplicado = fcntl(df, F_DUPFD, 0)) == -1)
+    perror("Error al dulpicar descriptor");
+  else {
+    tItemF newItem;
+    newItem = getItemF(p, fileList);
+    insertElementF(newItem, &fileList);
+    printf("Descriptor %d duplicado como descriptor %d (%s)\n",
+      df, duplicado, aux);
   }
 }
 
@@ -189,41 +259,52 @@ void Cmd_authors(char *arg) {
 }
 
 //Funcion encargada de llamar a la funcion correspondiente
-void procesar_comando(char comando[], tList *commandList) {
-  if (comando[0] == '\0') { //Si el usuario solo pulsa enter termina la funcion y vuelve al bucle
-    return;
-  } else {
-    addCommand(commandList, comando);
-    char *comand = strtok(comando, " ");
-    char *arg = strtok(NULL, " ");
-    if (!strcmp(comand, "exit") || !strcmp(comand, "quit") || !strcmp(comand, "bye")) {
-      freeList(commandList);
-      exit(0);
-    } else if (!strcmp(comand, "date"))
-      Cmd_date();
-    else if(!strcmp(comand, "time"))
-      Cmd_time();
-    else if (!strcmp(comand, "infosys"))
-      Cmd_infosys();
-    else if (!strcmp(comand, "authors"))
-      Cmd_authors(arg);
-    else if (!strcmp(comand, "comand"))
-      Cmd_comand(*commandList, atoi(arg));
-    else if (!strcmp(comand, "hist"))
-      Cmd_hist(commandList, arg);
-    else if(!strcmp(comand, "pid"))
-      Cmd_pid(arg);
-    else if (!strcmp(comand, "chdir"))
-      Cmd_chdir(arg);
-    else if (!strcmp(comand, "help"))
-      Cmd_help(arg);
-  }
+void procesar_comando(char comando[], tList commandList, tListF fileList) {
+
+  
+  char *comand = strtok(comando, " ");
+  char *arg = strtok(NULL, " ");
+  if (!strcmp(comand, "exit") || !strcmp(comand, "quit") || !strcmp(comand, "bye")) {
+    freeList(&commandList);
+    freeListF(&fileList);
+    free(commandList);
+    free(fileList);
+    exit(0);
+  } else if (!strcmp(comand, "date"))
+    Cmd_date();
+  else if(!strcmp(comand, "time"))
+    Cmd_time();
+  else if (!strcmp(comand, "infosys"))
+    Cmd_infosys();
+  else if (!strcmp(comand, "authors"))
+    Cmd_authors(arg);
+  else if (!strcmp(comand, "comand"))
+    Cmd_comand(commandList, fileList, atoi(arg));
+  else if (!strcmp(comand, "hist"))
+    Cmd_hist(&commandList, arg);
+  else if(!strcmp(comand, "pid"))
+    Cmd_pid(arg);
+  else if (!strcmp(comand, "chdir"))
+    Cmd_chdir(arg);
+  else if (!strcmp(comand, "help"))
+    Cmd_help(arg);
+  else if (!strcmp(comand, "open"))
+    Cmd_open(arg, fileList);
+  else if (!strcmp(comand, "close"))
+    Cmd_close(arg, fileList);
+  else if (!strcmp(comand, "dup"))
+    Cmd_dup(arg, fileList);
+  else 
+    printf("Command not found\n");
+  
 }
 
 int main() {
-  char comando[256]; // Usamos un array de caracteres para almacenar el comando
+  char comando[MAX]; // Usamos un array de caracteres para almacenar el comando
   tList commandList;
+  tListF fileList;
   createList(&commandList);
+  createListF(&fileList);
 
   while (1) {
     printf("> ");
@@ -232,7 +313,12 @@ int main() {
 
     comando[strcspn(comando, "\n")] = '\0'; // Eliminamos el carácter de salto de línea
 
-    procesar_comando(comando, &commandList);
+    if (comando[0] == '\0') //Si el usuario solo pulsa enter termina la funcion y vuelve al bucle
+      continue;
+    else {
+      addCommand(&commandList, comando);
+      procesar_comando(comando, commandList, fileList);
+    }
   }
 
   return 0;
