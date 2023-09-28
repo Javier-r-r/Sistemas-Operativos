@@ -66,7 +66,7 @@ void Cmd_close (char *arg, tListF fileList) {
   }
   
   if (close(df)==-1)
-    perror("Inposible cerrar descriptor");
+    perror("Imposible cerrar descriptor");
   else {
     removeElementF(df, &fileList);
     printf("Descriptor %d cerrado\n", df);
