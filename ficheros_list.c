@@ -5,6 +5,19 @@
 #include <malloc.h>
 #include <string.h>
 
+char *NombreFicheroDescriptor(int descriptor, tListF L) {
+  tPosF current = firstF(L);
+
+  while (current != NULL) {
+    if (current->file.descriptor == descriptor) {
+      return current->file.nombre;
+    }
+      current = current->next;
+  }
+
+  return NULL; // Si no se encuentra el descriptor, devolvemos NULL
+}
+
 bool createNodeF(tPosF *p){
     *p=malloc(sizeof (struct tNodeF));
     return (*p != FNULL);
@@ -142,3 +155,4 @@ int countItemsF(tListF L) {
     count ++;
   return count;
 }
+
