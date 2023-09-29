@@ -287,7 +287,7 @@ int main() {
   while (1) {
     printf("-> ");
 
-    gets(comando); // Leemos la entrada del usuario
+    fgets(comando, MAX, stdin); // Leemos la entrada del usuario
 
     comando[strcspn(comando, "\n")] = '\0'; // Eliminamos el carácter de salto de línea
 
