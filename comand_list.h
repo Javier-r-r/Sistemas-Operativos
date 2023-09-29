@@ -22,7 +22,7 @@ struct tNode{
 };
 typedef struct tNode *tList;
 
-void procesar_comando(char *tr[], tList commandList, tListF fileList);
+void procesar_comando(char *tr[], tList *commandList, tListF *fileList);
 
 void createList(tList *L);
 
