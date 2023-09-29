@@ -27,32 +27,27 @@ int TrocearCadena(char * cadena, char * trozos[]){
 }
 
 //Funcion que realiza el comando N de la lista hist
-void Cmd_comand(tList commandList, tListF fileList, int N) {
-  if (countItems(commandList) <= N) {
+void Cmd_comand(tList commandList, tListF fileList, char *tr[]) {
+  if (countItems(commandList) <= atoi(tr[0])) {
     printf("No hay tantos comandos en hist\n");
   } else {
-    tItemL item = getItem(N, commandList);
-    procesar_comando(item.comando, commandList, fileList);
-  }
-}
-
-//Función para añadir comandos al historial
-void addCommand(tList *commandList, char *command) {
-  if (command != NULL) {
-    insertElement(command, commandList);
+    char *trozos[MAX/2];
+    tItemL item = getItem(atoi(tr[0]), commandList);
+    TrocearCadena(item.comando, trozos);
+    procesar_comando(trozos, commandList, fileList);
   }
 }
 
 //Muestra el historial de comandos
-void Cmd_hist(tList *commandList, char *arg){
+void Cmd_hist(tList *commandList, char *tr[]){
   int ncmd;
 
-  if(arg == NULL){
+  if(tr[0] == NULL){
     printList(*commandList);
-  }else if(strcmp(arg,"-c") == 0){
+  }else if(strcmp(tr[0],"-c") == 0){
     freeList(commandList);
-  }else if (atoi(arg)){
-    ncmd=(int) (abs(strtol(arg,NULL,10)));
+  }else if (atoi(tr[0])){
+    ncmd=(int) (abs(strtol(tr[0],NULL,10)));
     printUntilN(*commandList, ncmd);
   }
 }
@@ -109,15 +104,15 @@ void Cmd_open (char *arg, tListF fileList)
 }
 
 //Imprime el pid del comando que se esta ejecutando el la red 
-void Cmd_pid(char *arg) {
-  if (arg == NULL)
+void Cmd_pid(char *tr[]) {
+  if (tr[0] == NULL)
     printf("Process pid: %d \n", getpid());
-  else if (strcmp(arg, "-p") == 0)
+  else if (strcmp(tr[0], "-p") == 0)
     printf("Parent process pid: %d \n", getppid());
 }
 
 //Funcion para obtener la fecha del sistema
-void Cmd_date() {
+void Cmd_date(char *tr[]) {
   // Obtener la fecha actual
   time_t t;
   struct tm *tm_info;
@@ -134,52 +129,52 @@ void Cmd_date() {
 }
 
 //Imprime información sobre el comando que se le pasa, si no pasa comando muestra por pantalla los comandos disponibles
-void Cmd_help(char *arg)
+void Cmd_help(char *tr[])
 {
-  if(arg == NULL){
+  if(tr[0] == NULL){
     printf("-authors\n-pid\n-date\n-time\n-hist\n-comando\n-infosys\n-help\n-exit\n-quit\n-bye\n");
   }
-  else if (!strcmp(arg,"authors")){
+  else if (!strcmp(tr[0],"authors")){
     printf("authors [-l][-n]: Prints the names and logins of the program authors. authors -l prints only the logins and authors -n prints only the names\n");
   }
-  else if (!strcmp(arg,"pid")){
+  else if (!strcmp(tr[0],"pid")){
     printf("pid [-p]: Prints the pid of the process executing the shell. pid -p rints the pid of the shell`s parent process.\n");
   }
-  else if (!strcmp(arg,"date")){
+  else if (!strcmp(tr[0],"date")){
     printf("date: It prints the current date in the format DD/MM/YYYY.");
   }
-  else if (!strcmp(arg, "time")) {
+  else if (!strcmp(tr[0], "time")) {
     printf("time: It prints the current time in the format hh:mm:ss.");
   }
-  else if (!strcmp(arg,"hist")){
+  else if (!strcmp(tr[0],"hist")){
     printf("hist [-c][-N]: Shows/clears the historic of commands executed by this shell.\n");
     printf("hist Prints all the commands that have been input with their order number\n");
     printf("hist -c Clears (empties) the list of historic commands\n");
     printf("hist -N prints the first N commands\n");
   }
-  else if (!strcmp(arg,"comando")){
+  else if (!strcmp(tr[0],"comando")){
     printf("comand N: Repeats command number N (from historic list)\n");
   }
-  else if (!strcmp(arg,"infosys")){
+  else if (!strcmp(tr[0],"infosys")){
     printf("infosys: Prints information on the machine running the shell (as obtained via the uname system call/library function)\n");
   }
-  else if (!strcmp(arg,"help")){
+  else if (!strcmp(tr[0],"help")){
     printf("help [cmd]: displays a list of availables commands. help cmd gives a brief\n");
     printf("help on the usage of command cmd\n");
   }
-  else if (!strcmp(arg,"bye")){
+  else if (!strcmp(tr[0],"bye")){
     printf("bye: Ends the shell\n");
   }
-  else if (!strcmp(arg,"quit")){
+  else if (!strcmp(tr[0],"quit")){
     printf("quit: Ends the shell\n");
   }
-  else if (!strcmp(arg,"exit")){
+  else if (!strcmp(tr[0],"exit")){
     printf("exit: Ends the shell\n");
   }
 }
 
 //Funcion para obtener la hora del sistema
-void Cmd_time() {
+void Cmd_time(char *tr[]) {
   // Obtener la hora actual
   time_t t;
   struct tm *tm_info;
@@ -196,7 +191,7 @@ void Cmd_time() {
 }
 
 //Funcion para imprimir por pantalla la informacion del sistema
-void Cmd_infosys() {
+void Cmd_infosys(char *tr[]) {
   struct utsname Cmd_infosys;
 
   if (uname(&Cmd_infosys) == -1) {
@@ -213,30 +208,75 @@ void Cmd_infosys() {
 
 }
 
-void Cmd_chdir(char *arg){
+void Cmd_chdir(char *tr[]){
     char dir[MAX];
-    if (arg==NULL)
+    if (tr[0]==NULL)
         printf("%s \n", getcwd(dir,MAX));
-    else if(chdir(arg) == 0){
+    else if(chdir(tr[0]) == 0){
         printf("You changed of directory\n");
         printf("%s \n", getcwd(dir,MAX));
-    }else if(chdir(arg)==-1){
+    }else if(chdir(tr[0])==-1){
         perror("Cannot change directory");
     }
 }
 
 //Funcion que maneja las opciones de la funcion Cmd_authors
-void Cmd_authors(char *arg) {
-  if (arg == NULL) {
+void Cmd_authors(char *tr[]) {
+  if (tr[0] == NULL) {
     printf("logins -> j.rrodriguez1@udc.es & m.cortond\n");
     printf("names -> Javier Rodriguez & Miguel Corton\n");
-  } else if (strcmp(arg, "-l") == 0) {
+  } else if (strcmp(tr[0], "-l") == 0) {
     printf("logins -> j.rrodriguez1@udc.es & m.cortond\n");
-  } else if (strcmp(arg, "-n") == 0) {
+  } else if (strcmp(tr[0], "-n") == 0) {
     printf("names -> Javier Rodriguez & Miguel Corton\n");
   } 
 }
 
+void Cmd_exit(tListF fileList, tList commandList){
+    freeList(&commandList);
+    freeListF(&fileList);
+    free(commandList);
+    free(fileList);
+    exit(0);
+}
+
+struct cmd {
+    char *nombre;
+    void (*pfuncion) (char **);
+};
+
+struct cmd cmds[]={
+  {"date",Cmd_date},
+  {"time",Cmd_time},
+  {"infosys",Cmd_infosys},
+  {"authors",Cmd_authors},
+  {"pid",Cmd_pid},
+  {"chdir",Cmd_chdir},
+  {"help",Cmd_help},
+};
+
+void procesar_comando(char *tr[], tList comandList, tListF fileList) {
+  int i;
+  if (tr[0] == NULL)
+    return;
+  if (!strcmp("comand", tr[0]))
+    Cmd_comand(comandList, fileList, tr+1);
+  else if (!strcmp("hist", tr[0]))
+    Cmd_hist(&comandList, tr+1);
+  else if (!strcmp("exit", tr[0]) || !strcmp("quit", tr[0]) || !strcmp("bye", tr[0]))
+    Cmd_exit(fileList, comandList);
+  else {
+    for (i=0; cmds[i].nombre != NULL; i++){
+      if (!strcmp(cmds[i].nombre, tr[0])) {
+        (cmds[i].pfuncion) (tr+1);
+        return;
+      }
+    }
+    printf("No ejecutado\n");
+  }
+}
+
+/*
 //Funcion encargada de llamar a la funcion correspondiente
 void procesar_comando(char comando[], tList commandList, tListF fileList) {
 
@@ -272,17 +312,18 @@ void procesar_comando(char comando[], tList commandList, tListF fileList) {
   else 
     printf("Command not found\n");
   
-}
+}*/
 
 int main() {
   char comando[MAX]; // Usamos un array de caracteres para almacenar el comando
+  char *tr[MAX];
   tList commandList;
   tListF fileList;
   createList(&commandList);
   createListF(&fileList);
 
   while (1) {
-    printf("> ");
+    printf("-> ");
 
     gets(comando); // Leemos la entrada del usuario
 
@@ -291,8 +332,9 @@ int main() {
     if (comando[0] == '\0') //Si el usuario solo pulsa enter termina la funcion y vuelve al bucle
       continue;
     else {
-      addCommand(&commandList, comando);
-      procesar_comando(comando, commandList, fileList);
+      insertElement(comando, &commandList);
+      TrocearCadena(comando, tr);
+      procesar_comando(tr, commandList, fileList);
     }
   }
 
