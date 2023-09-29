@@ -277,7 +277,7 @@ struct cmd {
     void (*pfuncion) (char **)
 };
 
-struct cmd procesar_comando[]={
+struct cmd cmds[]={
         {"date",Cmd_date},
         {"time",Cmd_time},
         {"infosys",Cmd_infosys},
@@ -295,48 +295,9 @@ struct cmd procesar_comando[]={
         {"bye", Cmd_exit},
 }   ;
 
-/*
-//Funcion encargada de llamar a la funcion correspondiente
-void procesar_comando(char *tr[], tList commandList, tListF fileList) {
-
-  addCommand(&commandList, *tr);
-  if (!strcmp(tr[0], "exit") || !strcmp(tr[0], "quit") || !strcmp(tr[0], "bye")) {
-    freeList(&commandList);
-    freeListF(&fileList);
-    free(commandList);
-    free(fileList);
-    exit(0);
-  } else if (!strcmp(tr[0], "date"))
-    Cmd_date();
-  else if(!strcmp(tr[0], "time"))
-    Cmd_time();
-  else if (!strcmp(tr[0], "infosys"))
-    Cmd_infosys();
-  else if (!strcmp(tr[0], "authors"))
-    Cmd_authors(tr+1);
-  else if (!strcmp(tr[0], "comand"))
-    Cmd_comand(commandList, fileList, atoi(*(tr+1)));
-  else if (!strcmp(tr[0], "hist"))
-    Cmd_hist(&commandList, tr+1);
-  else if(!strcmp(tr[0], "pid"))
-    Cmd_pid(tr+1);
-  else if (!strcmp(tr[0], "chdir"))
-    Cmd_chdir(tr+1);
-  else if (!strcmp(tr[0], "help"))
-    Cmd_help(tr+1);
-  else if (!strcmp(tr[0], "open"))
-    Cmd_open(tr+1, fileList);
-  else if (!strcmp(tr[0], "close"))
-    Cmd_close(tr+1, fileList);
-  else if (!strcmp(tr[0], "dup"))
-    Cmd_dup(tr+1, fileList);
-  else if (!strcmp((tr+1), "listopen"))
-    Cmd_listopen(fileList);
-  else 
-    printf("Command not found\n");
-  
+void procesar_comando(char *tr[], tList comandList, tListF fileList) {
+  int i;
 }
-*/
 
 int main(int argc, char *argv[]) {
   char comando[MAX]; // Usamos un array de caracteres para almacenar el comando
