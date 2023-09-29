@@ -91,7 +91,7 @@ void printListF(tListF L){
     tPosF p=L->next;
        
        while(p != FNULL){
-            printf("%4d) %s\n",p->file.index+1,p->file.nombre);
+            printf("%4d-> %s\n",p->file.index+1,p->file.nombre);
             p=p->next;
         }
     
@@ -124,7 +124,7 @@ void printUntilNF(tListF L, int n){
 
     while (p != FNULL){
     	if(p->file.index < n)
-        printf("%4d) %s\n",p->file.index+1,p->file.nombre);
+        printf("%4d-> %s\n",p->file.index+1,p->file.nombre);
         p=p->next;
     }
 }

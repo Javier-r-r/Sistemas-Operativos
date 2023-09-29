@@ -28,17 +28,22 @@ int TrocearCadena(char * cadena, char * trozos[]){
 
 //Funcion que realiza el comando N de la lista hist
 void Cmd_comand(tList commandList, tListF fileList, char *tr[]) {
-  if (countItems(commandList) <= atoi(tr[0])) {
-    printf("No hay tantos comandos en hist\n");
-  } else {
-    char *trozos[MAX/2];
-    tItemL item = getItem(atoi(tr[0]), commandList);
-    TrocearCadena(item.comando, trozos);
-    procesar_comando(trozos, commandList, fileList);
-  }
+  int N = atoi (tr[0]);
+  if (N) {
+    if (countItems(commandList) <= N) {
+      printf("No hay tantos comandos en hist\n");
+    } else {
+      char *trozos[MAX/2];
+      tItemL item = getItem(atoi(tr[0]), commandList);
+      TrocearCadena(item.comando, trozos);
+      printf("Ejecutando hist (%d): %s\n", atoi(tr[0]), trozos[0]);
+      procesar_comando(trozos, commandList, fileList);
+    }
+  } else 
+    printf("Comando no encontrado\n");
 }
 
-//Muestra el historial de comandos
+//Muestra el historial de comandos, empieza enumerando por 1
 void Cmd_hist(tList *commandList, char *tr[]){
   int ncmd;
 
@@ -49,7 +54,8 @@ void Cmd_hist(tList *commandList, char *tr[]){
   }else if (atoi(tr[0])){
     ncmd=(int) (abs(strtol(tr[0],NULL,10)));
     printUntilN(*commandList, ncmd);
-  }
+  } else
+    printf("Opcion no encontrada\n");
 }
 
 void Cmd_close (char *arg, tListF fileList)
@@ -109,23 +115,28 @@ void Cmd_pid(char *tr[]) {
     printf("Process pid: %d \n", getpid());
   else if (strcmp(tr[0], "-p") == 0)
     printf("Parent process pid: %d \n", getppid());
+  else
+    printf("Opcion no encontrada\n");
 }
 
 //Funcion para obtener la fecha del sistema
 void Cmd_date(char *tr[]) {
-  // Obtener la fecha actual
-  time_t t;
-  struct tm *tm_info;
+  if (tr[0] != NULL) {
+    // Obtener la fecha actual
+    time_t t;
+    struct tm *tm_info;
 
-  time(&t);
-  tm_info = localtime(&t);
+    time(&t);
+    tm_info = localtime(&t);
 
-  // Formatear la fecha en el formato DD/MM/YYYY
-  char fecha[11]; // Espacio suficiente para almacenar "DD/MM/YYYY\0"
-  strftime(fecha, sizeof(fecha), "%d/%m/%Y", tm_info);
+    // Formatear la fecha en el formato DD/MM/YYYY
+    char fecha[11]; // Espacio suficiente para almacenar "DD/MM/YYYY\0"
+    strftime(fecha, sizeof(fecha), "%d/%m/%Y", tm_info);
 
-  // Imprimir la fecha en el formato correcto
-  printf("Fecha actual: %s\n", fecha);
+    // Imprimir la fecha en el formato correcto
+    printf("%s\n", fecha);
+  } else 
+    printf("Opcion no encontrada\n");
 }
 
 //Imprime información sobre el comando que se le pasa, si no pasa comando muestra por pantalla los comandos disponibles
@@ -170,42 +181,49 @@ void Cmd_help(char *tr[])
   }
   else if (!strcmp(tr[0],"exit")){
     printf("exit: Ends the shell\n");
-  }
+  } 
+  else
+    printf("Opcion no encontrada\n");
 }
 
 //Funcion para obtener la hora del sistema
 void Cmd_time(char *tr[]) {
-  // Obtener la hora actual
-  time_t t;
-  struct tm *tm_info;
+  if (tr[0] != NULL) {
+    // Obtener la hora actual
+    time_t t;
+    struct tm *tm_info;
 
-  time(&t);
-  tm_info = localtime(&t);
+    time(&t);
+    tm_info = localtime(&t);
 
-  // Formatear la hora en el formato hh:mm:ss
-  char hora[9]; // Espacio suficiente para almacenar "hh:mm:ss\0"
-  strftime(hora, sizeof(hora), "%H:%M:%S", tm_info);
+    // Formatear la hora en el formato hh:mm:ss
+    char hora[9]; // Espacio suficiente para almacenar "hh:mm:ss\0"
+    strftime(hora, sizeof(hora), "%H:%M:%S", tm_info);
 
-  // Imprimir la hora formateada
-  printf("Hora actual: %s\n", hora);
+    // Imprimir la hora formateada
+    printf("%s\n", hora);
+  } else
+    printf("Opcion no encontrada\n");
 }
 
 //Funcion para imprimir por pantalla la informacion del sistema
 void Cmd_infosys(char *tr[]) {
-  struct utsname Cmd_infosys;
+  if (tr[0] != NULL) {
+    struct utsname Cmd_infosys;
 
-  if (uname(&Cmd_infosys) == -1) {
-    perror("uname");
-    return;
-  }
+    if (uname(&Cmd_infosys) == -1) {
+      perror("uname");
+      return;
+    }
 
-  printf("System Information:\n");
-  printf("  Operating System: %s\n", Cmd_infosys.sysname);
-  printf("  Node Name: %s\n", Cmd_infosys.nodename);
-  printf("  Release: %s\n", Cmd_infosys.release);
-  printf("  Version: %s\n", Cmd_infosys.version);
-  printf("  Machine: %s\n", Cmd_infosys.machine);
-
+    printf("System Information:\n");
+    printf("  Operating System: %s\n", Cmd_infosys.sysname);
+    printf("  Node Name: %s\n", Cmd_infosys.nodename);
+    printf("  Release: %s\n", Cmd_infosys.release);
+    printf("  Version: %s\n", Cmd_infosys.version);
+    printf("  Machine: %s\n", Cmd_infosys.machine);
+  } else
+    printf("Opcion no encontrada");
 }
 
 void Cmd_chdir(char *tr[]){
