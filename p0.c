@@ -58,9 +58,9 @@ void Cmd_hist(tList *commandList, char *arg){
 }
 
 void Cmd_close (char *arg, tListF fileList) { 
-  int df;
+  int df = atoi(arg);
     
-  if (arg==NULL || (df=atoi(arg))<0) { /*no hay parametro*/
+  if (arg==NULL || df<0) { /*no hay parametro*/
     printListF(fileList);
     return;
   }
@@ -88,10 +88,10 @@ void Cmd_open (char *arg, tListF fileList) {
     else if (!strcmp(tr[i],"tr")) mode|=O_TRUNC; 
     else break;
   }
-  if ((df=open(tr[0],mode,0777))==-1)
+  df=open(tr[0],mode,0777);
+  if (df==-1)
     perror ("Imposible abrir fichero");
   else{
-    df=open(tr[0], mode, 0777);
     tItemF newItem;
     newItem.descriptor = df;
     newItem.mode = mode;
