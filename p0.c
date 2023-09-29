@@ -27,14 +27,15 @@ int TrocearCadena(char * cadena, char * trozos[]){
 }
 
 //Funcion que realiza el comando N de la lista hist
-void Cmd_comand(tList commandList, tListF fileList, int N) {
+void Cmd_comand(char *tr[], tList commandList, tListF fileList) {
+  int N = atoi(tr[0]);
   if (countItems(commandList) <= N) {
     printf("No hay tantos comandos en hist\n");
   } else {
-    char copy[MAX];
-    char *sep;
+    char *trozos[MAX/2];
     tItemL item = getItem(N, commandList);
-    procesar_comando(item.comando, commandList, fileList);
+    TrocearCadena(item.comando,trozos);
+    procesar_comando(trozos, &commandList, &fileList);
   }
 }
 
@@ -282,21 +283,31 @@ struct cmd cmds[]={
         {"time",Cmd_time},
         {"infosys",Cmd_infosys},
         {"authors",Cmd_authors},
-        {"comand",Cmd_comand},
-        {"hist",Cmd_hist},
         {"pid",Cmd_pid},
         {"chdir",Cmd_chdir},
         {"help",Cmd_help},
-        {"open",Cmd_open},
-        {"close",Cmd_close},
-        {"dup",Cmd_dup},
         {"exit", Cmd_exit},
         {"quit", Cmd_exit},
         {"bye", Cmd_exit},
-}   ;
+};
 
-void procesar_comando(char *tr[], tList comandList, tListF fileList) {
+void procesar_comando(char *tr[], tList *comandList, tListF *fileList) {
   int i;
+  if (tr[0] == NULL)
+    return;
+  if (!strcmp("comand", tr[0]))
+    Cmd_comand(tr+1, *comandList, *fileList);
+  else if (!strcmp("hist", tr[0]))
+    Cmd_hist(comandList, tr+1);
+  else {
+    for (i=0; cmds[i].nombre != NULL; i++){
+      if (!strcmp(cmds[i].nombre, tr[0])) {
+        (cmds[i].pfuncion) (tr+1);
+        return;
+      }
+    }
+    printf("No ejecutado\n");
+  }
 }
 
 int main(int argc, char *argv[]) {
@@ -316,8 +327,8 @@ int main(int argc, char *argv[]) {
       continue;
     else {
       TrocearCadena(comando, &arg);
-      insertElement(arg, commandList);
-      procesar_comando(arg, commandList, fileList);
+      insertElement(arg, &commandList);
+      procesar_comando(&arg, &commandList, &fileList);
     }
   }
 
