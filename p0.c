@@ -264,6 +264,14 @@ void Cmd_authors(char *tr[]) {
   } 
 }
 
+void Cmd_exit(tListF fileList, tList commandList){
+    freeList(&commandList);
+    freeListF(&fileList);
+    free(commandList);
+    free(fileList);
+    exit(0);
+}
+
 struct cmd {
     char *nombre;
     void (*pfuncion) (char **)
