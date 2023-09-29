@@ -276,44 +276,6 @@ void procesar_comando(char *tr[], tList comandList, tListF fileList) {
   }
 }
 
-/*
-//Funcion encargada de llamar a la funcion correspondiente
-void procesar_comando(char comando[], tList commandList, tListF fileList) {
-
-  
-  char *comand = strtok(comando, " ");
-  char *arg = strtok(NULL, " ");
-  if (!strcmp(comand, "exit") || !strcmp(comand, "quit") || !strcmp(comand, "bye")) {
-    freeList(&commandList);
-    freeListF(&fileList);
-    free(commandList);
-    free(fileList);
-    exit(0);
-  } else if (!strcmp(comand, "date"))
-    Cmd_date();
-  else if(!strcmp(comand, "time"))
-    Cmd_time();
-  else if (!strcmp(comand, "infosys"))
-    Cmd_infosys();
-  else if (!strcmp(comand, "authors"))
-    Cmd_authors(arg);
-  else if (!strcmp(comand, "comand"))
-    Cmd_comand(commandList, fileList, atoi(arg));
-  else if (!strcmp(comand, "hist"))
-    Cmd_hist(&commandList, arg);
-  else if(!strcmp(comand, "pid"))
-    Cmd_pid(arg);
-  else if (!strcmp(comand, "chdir"))
-    Cmd_chdir(arg);
-  else if (!strcmp(comand, "help"))
-    Cmd_help(arg);
-  else if (!strcmp(comand, "open"))
-    Cmd_open(arg, fileList);
-  else 
-    printf("Command not found\n");
-  
-}*/
-
 int main() {
   char comando[MAX]; // Usamos un array de caracteres para almacenar el comando
   char *tr[MAX];
