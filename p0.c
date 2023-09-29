@@ -272,6 +272,30 @@ void Cmd_authors(char *arg) {
   } 
 }
 
+struct cmd {
+    char *nombre;
+    void (*pfuncion) (char **)
+};
+
+struct cmd procesar_comando[]={
+        {"date",Cmd_date},
+        {"time",Cmd_time},
+        {"infosys",Cmd_infosys},
+        {"authors",Cmd_authors},
+        {"comand",Cmd_comand},
+        {"hist",Cmd_hist},
+        {"pid",Cmd_pid},
+        {"chdir",Cmd_chdir},
+        {"help",Cmd_help},
+        {"open",Cmd_open},
+        {"close",Cmd_close},
+        {"dup",Cmd_dup},
+        {"exit", Cmd_exit},
+        {"quit", Cmd_exit},
+        {"bye", Cmd_exit},
+}   ;
+
+/*
 //Funcion encargada de llamar a la funcion correspondiente
 void procesar_comando(char comando[], tList commandList, tListF fileList) {
 
@@ -314,6 +338,7 @@ void procesar_comando(char comando[], tList commandList, tListF fileList) {
     printf("Command not found\n");
   
 }
+*/
 
 int main() {
   char comando[MAX]; // Usamos un array de caracteres para almacenar el comando
