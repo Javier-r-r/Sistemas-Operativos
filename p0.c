@@ -121,7 +121,6 @@ void Cmd_pid(char *tr[]) {
 
 //Funcion para obtener la fecha del sistema
 void Cmd_date(char *tr[]) {
-  if (tr[0] != NULL) {
     // Obtener la fecha actual
     time_t t;
     struct tm *tm_info;
@@ -135,60 +134,65 @@ void Cmd_date(char *tr[]) {
 
     // Imprimir la fecha en el formato correcto
     printf("%s\n", fecha);
-  } else 
-    printf("Opcion no encontrada\n");
 }
 
 //Imprime información sobre el comando que se le pasa, si no pasa comando muestra por pantalla los comandos disponibles
 void Cmd_help(char *tr[])
 {
   if(tr[0] == NULL){
-    printf("-authors\n-pid\n-date\n-time\n-hist\n-comando\n-infosys\n-help\n-exit\n-quit\n-bye\n");
+    printf("Ayuda sobre los comandos, comandos disponilbes:\n-authors\n-pid\n-date\n-time\n-hist\n-comand\n-infosys\n-help\n-exit\n-quit\n-bye\n");
   }
   else if (!strcmp(tr[0],"authors")){
-    printf("authors [-l][-n]: Prints the names and logins of the program authors. authors -l prints only the logins and authors -n prints only the names\n");
+    printf("authors [-l][-n]: Muestra los nombres y/o logins de los autores\n");
   }
   else if (!strcmp(tr[0],"pid")){
-    printf("pid [-p]: Prints the pid of the process executing the shell. pid -p rints the pid of the shell`s parent process.\n");
+    printf("pid [-p]: Muestra el pid del shell o de su proceso padre\n");
   }
   else if (!strcmp(tr[0],"date")){
-    printf("date: It prints the current date in the format DD/MM/YYYY.");
+    printf("date: Muestra la fecha actual\n");
   }
   else if (!strcmp(tr[0], "time")) {
-    printf("time: It prints the current time in the format hh:mm:ss.");
+    printf("time: Muestra la hora actual\n");
   }
   else if (!strcmp(tr[0],"hist")){
-    printf("hist [-c][-N]: Shows/clears the historic of commands executed by this shell.\n");
-    printf("hist Prints all the commands that have been input with their order number\n");
-    printf("hist -c Clears (empties) the list of historic commands\n");
-    printf("hist -N prints the first N commands\n");
+    printf("hist [-c][-N]: Muestra (o borra) el historico de comandos\n");
+    printf("\t-c: borra el historico\n");
+    printf("\tN: Muestra los primeros N comandos\n");
   }
-  else if (!strcmp(tr[0],"comando")){
-    printf("comand N: Repeats command number N (from historic list)\n");
+  else if (!strcmp(tr[0],"comand")){
+    printf("comand -N: Repite el comando N (del historico)\n");
   }
   else if (!strcmp(tr[0],"infosys")){
-    printf("infosys: Prints information on the machine running the shell (as obtained via the uname system call/library function)\n");
+    printf("infosys: Muestra informacion de la maquina donde se ejcuta el shell\n");
   }
   else if (!strcmp(tr[0],"help")){
-    printf("help [cmd]: displays a list of availables commands. help cmd gives a brief\n");
-    printf("help on the usage of command cmd\n");
+    printf("help [cmd]: Muestra una lista de los comandos disponibles\n");
+    printf("\tcmd: Muestra ayuda sobre el comando cmd\n");
   }
-  else if (!strcmp(tr[0],"bye")){
-    printf("bye: Ends the shell\n");
+  else if (!strcmp(tr[0],"bye") || !(strcmp(tr[0], "quit")) || !strcmp(tr[0], "exit")){
+    printf("%s: Termina la ejecucion del shell\n", tr[0]);
   }
-  else if (!strcmp(tr[0],"quit")){
-    printf("quit: Ends the shell\n");
+  else if (!strcmp(tr[0], "open")) {
+    printf("open [fich] [m1 m2...]  Abre el fichero fich y lo anade a la lista de ficheros abiertos del shell\n");
+    printf("\tm1,m2... es el modo de apertura (or bit a bit de los siguientes):\n");
+    printf("\tcr: O_CREAT\tap: O_APPEND\n\tew: O_EXCL\tro: O_RDONLY\n\tre: O_RDRW\two: O_WRONLY\n\ttr: O_TRUNC\n");
   }
-  else if (!strcmp(tr[0],"exit")){
-    printf("exit: Ends the shell\n");
-  } 
+  else if (!strcmp(tr[0], "close")) {
+    printf("close df: Cierra el descripor df y elimina el correspondiente fichero de la lista de ficheros abiertos\n");
+  }
+  else if (!strcmp(tr[0], "dup")){
+    printf("dup df: Duplica el descriptor de fichero df y anade una nueva entrada a la lista de ficheros abiertos\n");
+  }
+  else if (!strcmp(tr[0], "listopen")){
+    printf("listopen [n]; Lista los ficheros abiertos (al menos n) del shell\n");
+  }
   else
-    printf("Opcion no encontrada\n");
+    printf("%s no encontrado\n", tr[0]);
 }
 
 //Funcion para obtener la hora del sistema
 void Cmd_time(char *tr[]) {
-  if (tr[0] != NULL) {
+  if (tr[0] == NULL) {
     // Obtener la hora actual
     time_t t;
     struct tm *tm_info;
@@ -208,11 +212,11 @@ void Cmd_time(char *tr[]) {
 
 //Funcion para imprimir por pantalla la informacion del sistema
 void Cmd_infosys(char *tr[]) {
-  if (tr[0] != NULL) {
+  if (tr[0] == NULL) {
     struct utsname Cmd_infosys;
 
     if (uname(&Cmd_infosys) == -1) {
-      perror("uname");
+      perror("uname\n");
       return;
     }
 
@@ -223,7 +227,7 @@ void Cmd_infosys(char *tr[]) {
     printf("  Version: %s\n", Cmd_infosys.version);
     printf("  Machine: %s\n", Cmd_infosys.machine);
   } else
-    printf("Opcion no encontrada");
+    printf("Opcion no encontrada\n");
 }
 
 void Cmd_chdir(char *tr[]){
@@ -234,7 +238,7 @@ void Cmd_chdir(char *tr[]){
         printf("You changed of directory\n");
         printf("%s \n", getcwd(dir,MAX));
     }else if(chdir(tr[0])==-1){
-        perror("Cannot change directory");
+        perror("Cannot change directory\n");
     }
 }
 
@@ -247,7 +251,8 @@ void Cmd_authors(char *tr[]) {
     printf("logins -> j.rrodriguez1@udc.es & m.cortond\n");
   } else if (strcmp(tr[0], "-n") == 0) {
     printf("names -> Javier Rodriguez & Miguel Corton\n");
-  } 
+  } else
+    printf("Opcion no encontrada\n");
 }
 
 void Cmd_exit(tListF fileList, tList commandList){
@@ -290,7 +295,7 @@ void procesar_comando(char *tr[], tList comandList, tListF fileList) {
         return;
       }
     }
-    printf("No ejecutado\n");
+    printf("%s no encontrado. Consulte la lista de comandos disponibles con help\n", tr[0]);
   }
 }
 
