@@ -10,11 +10,11 @@
 #include <time.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <fcntl.h>
 #include <pwd.h>
 #include <grp.h>
 #include <dirent.h>
 #include <stdbool.h>
-#include <fcntl.h>
 #include "comand_list.h"
 
 int TrocearCadena(char * cadena, char * trozos[]){
@@ -58,71 +58,55 @@ void Cmd_hist(tList *commandList, char *tr[]){
     printf("Opcion no encontrada\n");
 }
 
-void Cmd_close (char *tr[], tListF fileList) { 
-  int df = atoi(tr[0]);
+void Cmd_close (char *arg, tListF fileList)
+{ 
+    int df;
     
-  if (tr[0]==NULL || df<0) { /*no hay parametro*/
-    printListF(fileList);
-    return;
-  }
-  
-  if (close(df)!=-1)
-    removeElementF(df, &fileList);
+    if (arg==NULL || (df=atoi(arg))<0) { /*no hay parametro*/
+        printListF(fileList);
+        return;
+    }
+
+    
+    if (close(df)==-1)
+        perror("Inposible cerrar descriptor");
+    else {
+        removeElementF(df, &fileList);
+        printf("Descriptor %d cerrado\n", df);
+    }
 }
 
-void Cmd_open (char *tr[], tListF fileList) {
-  int i,df, mode=0;
+void Cmd_open (char *arg, tListF fileList)
+{
+    int i,df, mode=0;
     
-  if (tr[0]==NULL) { /*no hay parametro*/
-    printListF(fileList);
-    return;
-  }
-  for (i=1; tr[i]!=NULL; i++) {
-    if (!strcmp(tr[i],"cr")) mode|=O_CREAT;
-    else if (!strcmp(tr[i],"ex")) mode|=O_EXCL;
-    else if (!strcmp(tr[i],"ro")) mode|=O_RDONLY; 
-    else if (!strcmp(tr[i],"wo")) mode|=O_WRONLY;
-    else if (!strcmp(tr[i],"rw")) mode|=O_RDWR;
-    else if (!strcmp(tr[i],"ap")) mode|=O_APPEND;
-    else if (!strcmp(tr[i],"tr")) mode|=O_TRUNC; 
-    else break;
-  }
-  df=open(tr[0],mode,0777);
-  if (df==-1)
-    perror ("Imposible abrir fichero");
-  else{
-    tItemF newItem;
-    newItem.descriptor = df;
-    newItem.mode = mode;
-    strncpy(newItem.nombre, tr[0], MAX);
-    insertElementF(newItem, &fileList);
-    printf("Añadida entrada %d a la tabla ficheros abiertos\n", df);
-  }
-}
-
-void Cmd_dup (char *tr[], tListF fileList) { 
-  int df, duplicado;
-  char aux[MAX],*p;
-    
-  if (tr[0]==NULL || (df=atoi(tr[0]))<0) { /*no hay parametro*/
-    printListF(fileList);                 /*o el descriptor es menor que 0*/
-    return;
-  }
- 
-  p=NombreFicheroDescriptor(df, fileList);
-
-  sprintf (aux,"dup %d (%s)",df, p);
-  if ((duplicado = fcntl(df, F_DUPFD, 0)) == -1)
-    perror("Error al dulpicar descriptor");
-  else {
-    tItemF newItem;
-    newItem = getItemF(p, fileList);
-    insertElementF(newItem, &fileList);
-  }
-}
-
-void Cmd_listopen(tListF fileList) {
-  printListF(fileList);
+    if (arg==NULL) { /*no hay parametro*/
+        printListF(fileList);
+        return;
+    }
+    char *tr[MAX];
+    TrocearCadena(arg, tr);
+    for (i=1; tr[i]!=NULL; i++) {
+      if (!strcmp(tr[i],"cr")) mode=O_CREAT;
+      else if (!strcmp(tr[i],"ex")) mode=O_EXCL;
+      else if (!strcmp(tr[i],"ro")) mode=O_RDONLY; 
+      else if (!strcmp(tr[i],"wo")) mode=O_WRONLY;
+      else if (!strcmp(tr[i],"rw")) mode=O_RDWR;
+      else if (!strcmp(tr[i],"ap")) mode=O_APPEND;
+      else if (!strcmp(tr[i],"tr")) mode=O_TRUNC; 
+      else break;
+    }
+    if ((df=open(tr[0],mode,0777))==-1)
+        perror ("Imposible abrir fichero");
+    else{
+      open(tr[0], mode, 0777);
+      tItemF newItem;
+      newItem.descriptor = df;
+      newItem.mode = mode;
+      strncpy(newItem.nombre, tr[0], MAX);
+      insertElementF(newItem, &fileList);
+      printf("Añadida entrada a la tabla ficheros abiertos: descriptor %d, modo %d, nombre %s\n", df, mode, tr[0]);
+    }
 }
 
 //Imprime el pid del comando que se esta ejecutando el la red 
@@ -202,7 +186,7 @@ void Cmd_help(char *tr[])
   else if (!strcmp(tr[0], "listopen")){
     printf("listopen [n]; Lista los ficheros abiertos (al menos n) del shell\n");
   }
-  else if (!strcmp(tr[0], "create")){
+    else if (!strcmp(tr[0], "create")){
     printf("create [-f] [name]: Crea un directorio o un fichero (-f)\n");
   }
   else if (!strcmp(tr[0], "stat")){
@@ -337,44 +321,7 @@ void procesar_comando(char *tr[], tList comandList, tListF fileList) {
   }
 }
 
-struct cmd {
-    char *nombre;
-    void (*pfuncion) (char **)
-};
-
-struct cmd cmds[]={
-        {"date",Cmd_date},
-        {"time",Cmd_time},
-        {"infosys",Cmd_infosys},
-        {"authors",Cmd_authors},
-        {"pid",Cmd_pid},
-        {"chdir",Cmd_chdir},
-        {"help",Cmd_help},
-        {"exit", Cmd_exit},
-        {"quit", Cmd_exit},
-        {"bye", Cmd_exit},
-};
-
-void procesar_comando(char *tr[], tList *comandList, tListF *fileList) {
-  int i;
-  if (tr[0] == NULL)
-    return;
-  if (!strcmp("comand", tr[0]))
-    Cmd_comand(tr+1, *comandList, *fileList);
-  else if (!strcmp("hist", tr[0]))
-    Cmd_hist(comandList, tr+1);
-  else {
-    for (i=0; cmds[i].nombre != NULL; i++){
-      if (!strcmp(cmds[i].nombre, tr[0])) {
-        (cmds[i].pfuncion) (tr+1);
-        return;
-      }
-    }
-    printf("No ejecutado\n");
-  }
-}
-
-int main(int argc, char *argv[]) {
+int main() {
   char comando[MAX]; // Usamos un array de caracteres para almacenar el comando
   char *tr[MAX];
   tList commandList;
@@ -386,6 +333,8 @@ int main(int argc, char *argv[]) {
     printf("-> ");
 
     fgets(comando, MAX, stdin); // Leemos la entrada del usuario
+
+    comando[strcspn(comando, "\n")] = '\0'; // Eliminamos el carácter de salto de línea
 
     if (comando[0] == '\0') //Si el usuario solo pulsa enter termina la funcion y vuelve al bucle
       continue;
