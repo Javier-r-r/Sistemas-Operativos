@@ -202,6 +202,28 @@ void Cmd_help(char *tr[])
   else if (!strcmp(tr[0], "listopen")){
     printf("listopen [n]; Lista los ficheros abiertos (al menos n) del shell\n");
   }
+  else if (!strcmp(tr[0], "create")){
+    printf("create [-f] [name]: Crea un directorio o un fichero (-f)\n");
+  }
+  else if (!strcmp(tr[0], "stat")){
+    printf("stat [-long] [-link] [-acc] name1 name2 ... lista ficheros\n");
+    printf("\t-long: listado largo\n");
+    printf("\t-acc: accesstime\n");
+    printf("\t-link: si es enlace simbolico, el path contenido\n");
+  }
+  else if (!strcmp(tr[0], "list")){
+    printf("list [-reca] [-recb] [-hid] [-long] [-link] [-acc] n1 n2 ... lista de directorios\n");
+    printf("\t-hid: incluye los ficheros ocultos\n");
+    printf("\t-recb: recursivo(antes)\n");
+    printf("\t-reca: recursivo(despues)\n");
+    printf("\tresto: parametros como stat\n");
+  }
+  else if (!strcmp(tr[0], "delete")){
+    printf("delete [name1 name2 ...]: Borra ficheros o directorios vacios\n");
+  }
+  else if (!strcmp(tr[0], "deltree")){
+    printf("deltree [name1 name2 ...]: Borra ficheros o directorios no vacios recursivamente\n");
+  }
   else
     printf("%s no encontrado\n", tr[0]);
 }
