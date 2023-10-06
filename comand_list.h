@@ -20,6 +20,7 @@ struct tNode{
     tItemL data;
     tPosL next;
 };
+
 typedef struct tNode *tList;
 
 void procesar_comando(char *tr[], tList commandList, tListF fileList);
