@@ -17,6 +17,15 @@
 #include <stdbool.h>
 #include "comand_list.h"
 
+struct statParams{
+    int lon;
+    int acc;
+    int lnk;
+    int hid;
+    int reca;
+    int recb;
+};
+
 int TrocearCadena(char * cadena, char * trozos[]){
   int i=1;
   if ((trozos[0]=strtok(cadena," \n\t"))==NULL)
@@ -275,6 +284,68 @@ void Cmd_authors(char *tr[]) {
     printf("names -> Javier Rodriguez & Miguel Corton\n");
   } else
     printf("Opcion no encontrada\n");
+}
+
+void Cmd_create(char *tr[]){
+    
+    char dir[MAX];
+    
+    if(tr[0]==NULL){
+    	printf("%s\n",getcwd(dir,MAX));
+    	printf("Please input a name for a file or directory\n");
+    }else if(!strcmp(tr[0],"-f")){
+        if(tr[1] == NULL) { 
+          printf("%s\n",getcwd(dir,MAX)); 
+          printf("Please indicate the name of the file\n"); 
+        }else{        
+    	  int ch= open(tr[1], O_CREAT | O_EXCL, 0775); //CREAT, create new files, EXCL avoid overwriting
+    	
+    	  if(ch == -1) perror("There was an error ");
+    	  else printf("The file \"%s\" was created successfully\n",tr[1]);
+    	}
+    }else{
+    	 if(mkdir(tr[0],0775) == -1) perror("There was an error ");
+    	 else printf("The directory \"%s\" was created successfully\n",tr[0]);
+    }
+}
+
+//Set 1 to each parameter if it is input
+struct statParams getParams(char *tr[], struct statParams pr){
+
+   for(int i=0; tr[i] != NULL; i++){
+        if (!strcmp(tr[i],"-long")) 	 pr.lon=1;
+        else if (!strcmp(tr[i],"-acc"))  pr.acc=1;
+        else if (!strcmp(tr[i],"-link")) pr.lnk=1;
+        else if (!strcmp(tr[i],"-hid"))  pr.hid=1;
+        else if (!strcmp(tr[i],"-reca")) pr.reca=1;
+        else if (!strcmp(tr[i],"-recb")) pr.recb=1;
+   }
+   return pr;
+}
+
+void Cmd_stat(char *tr[]){
+
+    char dir[MAX];
+    
+    if(tr[0] == NULL){
+    	printf("%s\n",getcwd(dir,MAX));
+    	printf("Please input a name of a file or directory\n");
+    }else{    
+      struct statParams pr={0,0,0,0,0,0};
+      int counterFiles=0;      
+      pr=getParams(tr,pr);
+      
+      for(int i=0; tr[i]!=NULL ; i++){
+      	if((strcmp(tr[i],"-long")) && (strcmp(tr[i],"-acc")) && (strcmp(tr[i],"-link"))){
+      	    printStats(tr[i],&pr);
+      	    counterFiles++;
+      	}           	
+      }
+      if(counterFiles==0){ //if we type the command with parameters but there isn't any file
+         printf("%s\n",getcwd(dir,MAX));
+         printf("Please input a name of a file or directory\n");
+      } 
+   }    
 }
 
 void Cmd_exit(tListF fileList, tList commandList){
