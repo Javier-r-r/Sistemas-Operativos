@@ -26,7 +26,7 @@ struct statParams{
     int recb;
 };
 
-int TrocearCadena(char * cadena, char * trozos[]){
+int TrocearCadena(char *cadena, char *trozos[]){
   int i=1;
   if ((trozos[0]=strtok(cadena," \n\t"))==NULL)
     return 0;
@@ -67,16 +67,15 @@ void Cmd_hist(tList *commandList, char *tr[]){
     printf("Opcion no encontrada\n");
 }
 
-void Cmd_close (char *arg, tListF fileList)
+void Cmd_close (char *tr[], tListF fileList)
 { 
     int df;
     
-    if (arg==NULL || (df=atoi(arg))<0) { /*no hay parametro*/
+    if (tr[0]==NULL || (df=atoi(tr[0]))<0) { /*no hay parametro*/
         printListF(fileList);
         return;
     }
 
-    
     if (close(df)==-1)
         perror("Inposible cerrar descriptor");
     else {
@@ -85,16 +84,15 @@ void Cmd_close (char *arg, tListF fileList)
     }
 }
 
-void Cmd_open (char *arg, tListF fileList)
+void Cmd_open (char *tr[], tListF fileList)
 {
     int i,df, mode=0;
     
-    if (arg==NULL) { /*no hay parametro*/
+    if (tr[0]==NULL) { /*no hay parametro*/
         printListF(fileList);
         return;
     }
-    char *tr[MAX];
-    TrocearCadena(arg, tr);
+
     for (i=1; tr[i]!=NULL; i++) {
       if (!strcmp(tr[i],"cr")) mode=O_CREAT;
       else if (!strcmp(tr[i],"ex")) mode=O_EXCL;
@@ -108,7 +106,6 @@ void Cmd_open (char *arg, tListF fileList)
     if ((df=open(tr[0],mode,0777))==-1)
         perror ("Imposible abrir fichero");
     else{
-      open(tr[0], mode, 0777);
       tItemF newItem;
       newItem.descriptor = df;
       newItem.mode = mode;
@@ -116,6 +113,20 @@ void Cmd_open (char *arg, tListF fileList)
       insertElementF(newItem, &fileList);
       printf("Añadida entrada a la tabla ficheros abiertos: descriptor %d, modo %d, nombre %s\n", df, mode, tr[0]);
     }
+}
+
+void Cmd_dup (char * tr[], tListF fileList)
+{ 
+    int df;
+    char aux[MAX],*p;
+    
+    if (tr[0]==NULL || (df=atoi(tr[0]))<0) { /*no hay parametro*/
+        printListF(fileList);           /*o el descriptor es menor que 0*/
+        return;
+    }
+    tItemF item;
+    item.descriptor = fcntl(df,F_GETFL);
+    insertElementF(item, &fileList);
 }
 
 //Imprime el pid del comando que se esta ejecutando el la red 
@@ -308,7 +319,7 @@ void Cmd_create(char *tr[]){
     	 else printf("The directory \"%s\" was created successfully\n",tr[0]);
     }
 }
-
+/*
 //Set 1 to each parameter if it is input
 struct statParams getParams(char *tr[], struct statParams pr){
 
@@ -347,7 +358,7 @@ void Cmd_stat(char *tr[]){
       } 
    }    
 }
-
+*/
 void Cmd_exit(tListF fileList, tList commandList){
     freeList(&commandList);
     freeListF(&fileList);
@@ -381,6 +392,12 @@ void procesar_comando(char *tr[], tList comandList, tListF fileList) {
     Cmd_hist(&comandList, tr+1);
   else if (!strcmp("exit", tr[0]) || !strcmp("quit", tr[0]) || !strcmp("bye", tr[0]))
     Cmd_exit(fileList, comandList);
+  else if (!strcmp("open", tr[0]))
+    Cmd_open(tr+1, fileList);
+  else if (!strcmp("close", tr[0]))
+    Cmd_close(tr+1, fileList);
+  else if (!strcmp("dup", tr[0]))
+    Cmd_dup(tr+1, fileList);
   else {
     for (i=0; cmds[i].nombre != NULL; i++){
       if (!strcmp(cmds[i].nombre, tr[0])) {

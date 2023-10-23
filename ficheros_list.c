@@ -2,22 +2,52 @@
 //Miguel Cortón Debén
 #include "ficheros_list.h"
 #include <stdio.h>
-#include <malloc.h>
 #include <string.h>
+#include <errno.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/utsname.h>
+#include <time.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <fcntl.h>
+#include <pwd.h>
+#include <grp.h>
+#include <dirent.h>
+#include <stdbool.h>
 
-char *NombreFicheroDescriptor(int descriptor, tListF L) {
-  tPosF current = firstF(L);
-
-  while (current != NULL) {
-    if (current->file.descriptor == descriptor) {
-      return current->file.nombre;
+char *modeToString(int mode) {
+    char *result;
+    
+    switch (mode) {
+        case O_RDONLY:
+            result = "O_RDONLY";
+            break;
+        case O_WRONLY:
+            result = "O_WRONLY";
+            break;
+        case O_RDWR:
+            result = "O_RDWR";
+            break;
+        case O_CREAT:
+            result = "O_CREAT";
+            break;
+        case O_EXCL:
+            result = "O_EXCL";
+            break;
+        case O_APPEND:
+            result = "O_APPEND";
+            break;
+        case O_TRUNC:
+            result = "O_TRUNC";
+            break;
+        default:
+            result = "Modo no válido";
+            break;
     }
-      current = current->next;
-  }
-
-  return NULL; // Si no se encuentra el descriptor, devolvemos NULL
+    
+    return result;
 }
-
 bool createNodeF(tPosF *p){
     *p=malloc(sizeof (struct tNodeF));
     return (*p != FNULL);
@@ -104,7 +134,7 @@ void printListF(tListF L){
     tPosF p=L->next;
        
        while(p != FNULL){
-            printf("%4d-> %s\n",p->file.index+1,p->file.nombre);
+            printf("descriptor: %d -> %s %s\n",p->file.descriptor,p->file.nombre, modeToString(p->file.mode));
             p=p->next;
         }
     
@@ -132,19 +162,9 @@ void freeListF(tListF *L){
     }
 }
 
-void printUntilNF(tListF L, int n){
-    tPosF p=L->next;
-
-    while (p != FNULL){
-    	if(p->file.index < n)
-        printf("%4d-> %s\n",p->file.index+1,p->file.nombre);
-        p=p->next;
-    }
-}
-
-tItemF getItemF(char *file, tListF L){
+tItemF getItemF(int df, tListF L){
     tPosF q;
-    for(q=L->next;q->file.nombre!=file;q=q->next);
+    for(q=L->next;q->file.descriptor!=df;q=q->next);
     return q->file;
 }
 
