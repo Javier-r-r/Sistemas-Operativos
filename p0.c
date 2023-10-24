@@ -79,14 +79,14 @@ void Cmd_close (char *tr[], tListF fileList)
     if (close(df)==-1)
         perror("Inposible cerrar descriptor");
     else {
-        removeElementF(df, &fileList);
         printf("Descriptor %d cerrado\n", df);
+        removeElementF(df, &fileList);
     }
 }
 
 void Cmd_open (char *tr[], tListF fileList)
 {
-    int i,df, mode=0;
+    int i,df, mode=0, df2;
     
     if (tr[0]==NULL) { /*no hay parametro*/
         printListF(fileList);
@@ -109,6 +109,7 @@ void Cmd_open (char *tr[], tListF fileList)
       tItemF newItem;
       newItem.descriptor = df;
       newItem.mode = mode;
+      newItem.descriptorp = -1;
       strncpy(newItem.nombre, tr[0], MAX);
       insertElementF(newItem, &fileList);
       printf("Añadida entrada a la tabla ficheros abiertos: descriptor %d, modo %d, nombre %s\n", df, mode, tr[0]);
@@ -118,14 +119,14 @@ void Cmd_open (char *tr[], tListF fileList)
 void Cmd_dup (char * tr[], tListF fileList)
 { 
     int df;
-    char aux[MAX],*p;
     
     if (tr[0]==NULL || (df=atoi(tr[0]))<0) { /*no hay parametro*/
         printListF(fileList);           /*o el descriptor es menor que 0*/
         return;
     }
     tItemF item;
-    item.descriptor = fcntl(df,F_GETFL);
+    item.descriptor = fcntl(df,F_DUPFD);
+    item.descriptorp = df;
     insertElementF(item, &fileList);
 }
 
@@ -416,7 +417,10 @@ int main() {
   tListF fileList;
   createList(&commandList);
   createListF(&fileList);
-
+/*  Cmd_open("entrada_estandar rw", fileList);
+  Cmd_open("salida_estandar rw", fileList);
+  Cmd_open("error_estandar rw", fileList);
+*/
   while (1) {
     printf("-> ");
 

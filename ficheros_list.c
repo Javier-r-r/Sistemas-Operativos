@@ -42,7 +42,7 @@ char *modeToString(int mode) {
             result = "O_TRUNC";
             break;
         default:
-            result = "Modo no válido";
+            result = "";
             break;
     }
     
@@ -105,12 +105,12 @@ bool insertElementF(tItemF item, tListF *L){
 void removeElementF(int df, tListF *L){
     
     tPosF current = firstF(*L);
-    tPosF previous = NULL;
+    tPosF previous = FNULL;
 
-    while (current != NULL) {
+    while (current != FNULL) {
         if (current->file.descriptor == df) {
             // El elemento actual tiene el descriptor que queremos eliminar
-            if (previous == NULL) {
+            if (previous == FNULL) {
                 // Si no hay elemento anterior, significa que es el primer elemento
                 *L = current->next;
             } else {
@@ -134,8 +134,13 @@ void printListF(tListF L){
     tPosF p=L->next;
        
        while(p != FNULL){
-            printf("descriptor: %d -> %s %s\n",p->file.descriptor,p->file.nombre, modeToString(p->file.mode));
-            p=p->next;
+            if (p->file.descriptorp >= 0) {
+                printf("descriptor: %d -> dup %d (%s) %s\n",p->file.descriptor,p->file.descriptorp, p->file.nombre, modeToString(p->file.mode));
+                p=p->next;
+            } else {
+                printf("descriptor: %d -> %s %s\n",p->file.descriptor,p->file.nombre, modeToString(p->file.mode));
+                p=p->next;
+            }
         }
     
 }
