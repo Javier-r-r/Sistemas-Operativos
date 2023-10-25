@@ -2,9 +2,44 @@
 //Miguel Cortón Debén
 #include "ficheros_list.h"
 #include <stdio.h>
-#include <malloc.h>
 #include <string.h>
+#include <errno.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/utsname.h>
+#include <time.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <fcntl.h>
+#include <pwd.h>
+#include <grp.h>
+#include <dirent.h>
+#include <stdbool.h>
 
+char *modeToString(int mode) {
+    char *result;
+
+    if (mode == -1) 
+        perror("Error modeToString\n");
+    else if (mode == O_CREAT)
+        result = "O_CREAT";
+    else if (mode == O_EXCL)
+        result = "O_EXCL";
+    else if (mode == O_RDONLY)
+        result = "O_RDONLY";
+    else if (mode == O_WRONLY)
+        result = "O_WRONLY";
+    else if (mode == O_RDWR)
+        result = "O_RDWR";
+    else if (mode == O_APPEND)
+        result = "O_APPEND";
+    else if (mode == O_TRUNC)
+        result = "O_TRUNC";
+    else
+        result = "";
+    
+    return result;
+}
 bool createNodeF(tPosF *p){
     *p=malloc(sizeof (struct tNodeF));
     return (*p != FNULL);
@@ -62,12 +97,12 @@ bool insertElementF(tItemF item, tListF *L){
 void removeElementF(int df, tListF *L){
     
     tPosF current = firstF(*L);
-    tPosF previous = NULL;
+    tPosF previous = FNULL;
 
-    while (current != NULL) {
+    while (current != FNULL) {
         if (current->file.descriptor == df) {
             // El elemento actual tiene el descriptor que queremos eliminar
-            if (previous == NULL) {
+            if (previous == FNULL) {
                 // Si no hay elemento anterior, significa que es el primer elemento
                 *L = current->next;
             } else {
@@ -79,22 +114,53 @@ void removeElementF(int df, tListF *L){
             free(current);
             return;
         }
-
         previous = current;
         current = current->next;
     }
 }
 
+//Funcion para intercambiar dos elementos de la lista
+void swap(tPosF a, tPosF b) {
+    tItemF temp = a->file;
+    a->file = b->file;
+    b->file = temp;
+}
 
+// Función para ordenar la lista en función del descriptor
+void sortListF(tListF *L) {
+    int swapped;
+    tPosF ptr1;
+    tPosF lptr = FNULL;
+
+    if (*L == FNULL)
+        return;
+
+    do {
+        swapped = 0;
+        ptr1 = (*L)->next;
+
+        while (ptr1->next != lptr) {
+            if (ptr1->file.descriptor > ptr1->next->file.descriptor) {
+                // Intercambia los elementos si el descriptor es mayor
+                swap(ptr1, ptr1->next);
+                swapped = 1;
+            }
+            ptr1 = ptr1->next;
+        }
+        lptr = ptr1;
+    } while (swapped);
+}
 
 void printListF(tListF L){
-    tPosF p=L->next;
+    if (firstF(L) != FNULL) {
+        sortListF(&L);
+        tPosF p=L->next;
        
-       while(p != FNULL){
-            printf("%4d-> %s\n",p->file.index+1,p->file.nombre);
+        while(p != FNULL){
+            printf("descriptor: %d -> %s %s\n",p->file.descriptor,p->file.nombre, modeToString(p->file.mode));
             p=p->next;
         }
-    
+    }
 }
 
 void removeElementAux(tPosF p, tListF *L){
@@ -119,26 +185,18 @@ void freeListF(tListF *L){
     }
 }
 
-void printUntilNF(tListF L, int n){
-    tPosF p=L->next;
-
-    while (p != FNULL){
-    	if(p->file.index < n)
-        printf("%4d-> %s\n",p->file.index+1,p->file.nombre);
-        p=p->next;
-    }
-}
-
-tItemF getItemF(char *file, tListF L){
+tItemF getItemF(int df, tListF L){
     tPosF q;
-    for(q=L->next;q->file.nombre!=file;q=q->next);
+    for(q=L->next;q->file.descriptor!=df;q=q->next);
     return q->file;
 }
 
-int countItemsF(tListF L) {
+/*int countItemsF(tListF L) {
   int count = 0;
   tPosF p;
   for (p = firstF(L); p != NULL; p = nextF(p, L))
     count ++;
   return count;
 }
+
+*/
