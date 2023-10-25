@@ -1,3 +1,6 @@
+//Javier Rodriguez Rodriguez, grupo 4.2
+//Miguel Corton Deben, grupo 4.2
+
 #define MAX 1024
 #define _GNU_SOURCE
 
