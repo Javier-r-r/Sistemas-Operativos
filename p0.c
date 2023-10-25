@@ -10,14 +10,23 @@
 #include <time.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <fcntl.h>
 #include <pwd.h>
 #include <grp.h>
 #include <dirent.h>
 #include <stdbool.h>
-#include <fcntl.h>
 #include "comand_list.h"
 
-int TrocearCadena(char * cadena, char * trozos[]){
+struct statParams{
+  int lon;
+  int acc;
+  int lnk;
+  int hid;
+  int reca;
+  int recb;
+};
+
+int TrocearCadena(char *cadena, char *trozos[]){
   int i=1;
   if ((trozos[0]=strtok(cadena," \n\t"))==NULL)
     return 0;
@@ -27,18 +36,27 @@ int TrocearCadena(char * cadena, char * trozos[]){
 }
 
 //Funcion que realiza el comando N de la lista hist
-void Cmd_comand(tList commandList, tListF fileList, int N) {
-  if (countItems(commandList) <= N) {
-    printf("No hay tantos comandos en hist\n");
-  } else {
-    char copy[MAX];
-    char *sep;
-    tItemL item = getItem(N, commandList);
-    procesar_comando(item.comando, commandList, fileList);
-  }
+void Cmd_comand(tList commandList, tListF fileList, char *tr[]) {
+  int N = atoi (tr[0]);
+  if (N) {
+    if (countItems(commandList) <= N) {
+      printf("No hay tantos comandos en hist\n");
+    } else {
+      char *trozos[MAX/2];
+      tItemL item = getItem(atoi(tr[0]), commandList);
+      TrocearCadena(item.comando, trozos);
+      printf("Ejecutando hist (%d): %s\n", atoi(tr[0]), trozos[0]);
+      procesar_comando(trozos, commandList, fileList);
+    }
+  } else 
+    printf("Comando no encontrado\n");
 }
 
-//Muestra el historial de comandos
+void Cmd_listopen (tListF fileList) {
+  printListF(fileList);
+}
+
+//Muestra el historial de comandos, empieza enumerando por 1
 void Cmd_hist(tList *commandList, char *tr[]){
   int ncmd;
 
@@ -49,40 +67,46 @@ void Cmd_hist(tList *commandList, char *tr[]){
   }else if (atoi(tr[0])){
     ncmd=(int) (abs(strtol(tr[0],NULL,10)));
     printUntilN(*commandList, ncmd);
-  }
+  } else
+    printf("Opcion no encontrada\n");
 }
 
-void Cmd_close (char *tr[], tListF fileList) { 
-  int df = atoi(tr[0]);
+void Cmd_close (char *tr[], tListF fileList)
+{ 
+  int df;
     
-  if (tr[0]==NULL || df<0) { /*no hay parametro*/
+  if (tr[0]==NULL || (df=atoi(tr[0]))<0) { /*no hay parametro*/
     printListF(fileList);
     return;
   }
   
-  if (close(df)!=-1)
+  if (close(df)==-1)
+    perror("Imposible cerrar descriptor");
+  else {
     removeElementF(df, &fileList);
+  }
 }
 
-void Cmd_open (char *tr[], tListF fileList) {
+void Cmd_open (char *tr[], tListF fileList)
+{
   int i,df, mode=0;
     
   if (tr[0]==NULL) { /*no hay parametro*/
     printListF(fileList);
     return;
   }
+
   for (i=1; tr[i]!=NULL; i++) {
-    if (!strcmp(tr[i],"cr")) mode|=O_CREAT;
-    else if (!strcmp(tr[i],"ex")) mode|=O_EXCL;
-    else if (!strcmp(tr[i],"ro")) mode|=O_RDONLY; 
-    else if (!strcmp(tr[i],"wo")) mode|=O_WRONLY;
-    else if (!strcmp(tr[i],"rw")) mode|=O_RDWR;
-    else if (!strcmp(tr[i],"ap")) mode|=O_APPEND;
-    else if (!strcmp(tr[i],"tr")) mode|=O_TRUNC; 
+    if (!strcmp(tr[i],"cr")) mode=O_CREAT;
+    else if (!strcmp(tr[i],"ex")) mode=O_EXCL;
+    else if (!strcmp(tr[i],"ro")) mode=O_RDONLY; 
+    else if (!strcmp(tr[i],"wo")) mode=O_WRONLY;
+    else if (!strcmp(tr[i],"rw")) mode=O_RDWR;
+    else if (!strcmp(tr[i],"ap")) mode=O_APPEND;
+    else if (!strcmp(tr[i],"tr")) mode=O_TRUNC; 
     else break;
   }
-  df=open(tr[0],mode,0777);
-  if (df==-1)
+  if ((df=open(tr[0],mode,0777))==-1)
     perror ("Imposible abrir fichero");
   else{
     tItemF newItem;
@@ -90,45 +114,39 @@ void Cmd_open (char *tr[], tListF fileList) {
     newItem.mode = mode;
     strncpy(newItem.nombre, tr[0], MAX);
     insertElementF(newItem, &fileList);
-    printf("Añadida entrada %d a la tabla ficheros abiertos\n", df);
+    printf("Añadida entrada a la tabla ficheros abiertos: descriptor %d, modo %d, nombre %s\n", df, mode, tr[0]);
   }
 }
 
-void Cmd_dup (char *tr[], tListF fileList) { 
-  int df, duplicado;
-  char aux[MAX],*p;
-    
+void Cmd_dup (char * tr[], tListF fileList)
+{ 
+  int df;
+  char aux[MAX], *p;
+  
   if (tr[0]==NULL || (df=atoi(tr[0]))<0) { /*no hay parametro*/
-    printListF(fileList);                 /*o el descriptor es menor que 0*/
+    printListF(fileList);           /*o el descriptor es menor que 0*/
     return;
   }
- 
-  p=NombreFicheroDescriptor(df, fileList);
-
-  sprintf (aux,"dup %d (%s)",df, p);
-  if ((duplicado = fcntl(df, F_DUPFD, 0)) == -1)
-    perror("Error al dulpicar descriptor");
-  else {
-    tItemF newItem;
-    newItem = getItemF(p, fileList);
-    insertElementF(newItem, &fileList);
-  }
-}
-
-void Cmd_listopen(tListF fileList) {
-  printListF(fileList);
+  p = getItemF(df, fileList).nombre;
+  tItemF item;
+  sprintf(aux, "dup %d (%s)", df, p);
+  item.descriptor = fcntl(df,F_DUPFD);
+  strncpy(item.nombre, aux, MAX);
+  insertElementF(item, &fileList);
 }
 
 //Imprime el pid del comando que se esta ejecutando el la red 
 void Cmd_pid(char *tr[]) {
   if (tr[0] == NULL)
-    printf("Pid del shell: %d \n", getpid());
+    printf("Process pid: %d \n", getpid());
   else if (strcmp(tr[0], "-p") == 0)
-    printf("Pid del padre del shell: %d \n", getppid());
+    printf("Parent process pid: %d \n", getppid());
+  else
+    printf("Opcion no encontrada\n");
 }
 
 //Funcion para obtener la fecha del sistema
-void Cmd_date() {
+void Cmd_date(char *tr[]) {
   // Obtener la fecha actual
   time_t t;
   struct tm *tm_info;
@@ -148,13 +166,13 @@ void Cmd_date() {
 void Cmd_help(char *tr[])
 {
   if(tr[0] == NULL){
-    printf("Comandos disponibles:\n-authors\n-pid\n-date\n-time\n-hist\n-comando\n-infosys\n-help\n-exit\n-quit\n-bye\n");
+    printf("Ayuda sobre los comandos, comandos disponilbes:\n-authors\n-pid\n-date\n-time\n-hist\n-comand\n-infosys\n-help\n-exit\n-quit\n-bye\n");
   }
   else if (!strcmp(tr[0],"authors")){
-    printf("authors [-l][-n]: Muestra los nombres y/o los logins de los autores\n");
+    printf("authors [-l][-n]: Muestra los nombres y/o logins de los autores\n");
   }
   else if (!strcmp(tr[0],"pid")){
-    printf("pid [-p]: Muestra el pid del shell o su proceso padre\n");
+    printf("pid [-p]: Muestra el pid del shell o de su proceso padre\n");
   }
   else if (!strcmp(tr[0],"date")){
     printf("date: Muestra la fecha actual\n");
@@ -164,175 +182,239 @@ void Cmd_help(char *tr[])
   }
   else if (!strcmp(tr[0],"hist")){
     printf("hist [-c][-N]: Muestra (o borra) el historico de comandos\n");
-    printf("\t-N: Muestra los N primeros comandos\n");
-    printf("\t-c: Borra el historico\n");
+    printf("\t-c: borra el historico\n");
+    printf("\tN: Muestra los primeros N comandos\n");
   }
   else if (!strcmp(tr[0],"comand")){
-    printf("comand [-N]: Repite el comando N (del historico)\n");
+    printf("comand -N: Repite el comando N (del historico)\n");
   }
   else if (!strcmp(tr[0],"infosys")){
-    printf("infosys: Muestra la informacion de la maquina donde se ejecuta el shell\n");
+    printf("infosys: Muestra informacion de la maquina donde se ejcuta el shell\n");
   }
   else if (!strcmp(tr[0],"help")){
-    printf("help [cmd]: Muestra ayuda sobre los comandos\n");
-    printf("\tcmd: info sobre el comando cmd\n");
+    printf("help [cmd]: Muestra una lista de los comandos disponibles\n");
+    printf("\tcmd: Muestra ayuda sobre el comando cmd\n");
   }
-  else if (!strcmp(tr[0], "chdir")) {
-    printf("chdir [dir]: Cambia (o muestra) el directorio actual del shell\n");
-  }
-  else if (!strcmp(tr[0], "listopen")) {
-    printf("listopen [n]: Lista los ficheros abiertos (al menos n) del shell\n");
+  else if (!strcmp(tr[0],"bye") || !(strcmp(tr[0], "quit")) || !strcmp(tr[0], "exit")){
+    printf("%s: Termina la ejecucion del shell\n", tr[0]);
   }
   else if (!strcmp(tr[0], "open")) {
-    printf("open fich m1,m2...: Abre el fichero fich, y lo anade a la lista de ficheros abiertos del shell\n");
-    printf("m1, m2... es el modo de apertura (or bit a bit de los siguientes):\n");
-    printf("\tcr: O_CREAT\tap: O_APPEND\n\tex: O_EXCL\tro: O_RDONLY\n\trw: O_RDWR\two: O_WRONLY\n\ttr: O_TRUNC\n");
+    printf("open [fich] [m1 m2...]  Abre el fichero fich y lo anade a la lista de ficheros abiertos del shell\n");
+    printf("\tm1,m2... es el modo de apertura (or bit a bit de los siguientes):\n");
+    printf("\tcr: O_CREAT\tap: O_APPEND\n\tew: O_EXCL\tro: O_RDONLY\n\tre: O_RDRW\two: O_WRONLY\n\ttr: O_TRUNC\n");
   }
   else if (!strcmp(tr[0], "close")) {
-    printf("close df: Cierra el descriptor df y elimina el correspondiente fichero de la lista de ficheros abiertos\n");
+    printf("close df: Cierra el descripor df y elimina el correspondiente fichero de la lista de ficheros abiertos\n");
   }
-  else if (!strcmp(tr[0], "dup")) {
+  else if (!strcmp(tr[0], "dup")){
     printf("dup df: Duplica el descriptor de fichero df y anade una nueva entrada a la lista de ficheros abiertos\n");
   }
-  else if (!strcmp(tr[0],"bye")){
-    printf("bye: Termina la ejecucion del shell\n");
+  else if (!strcmp(tr[0], "listopen")){
+    printf("listopen [n]; Lista los ficheros abiertos (al menos n) del shell\n");
   }
-  else if (!strcmp(tr[0],"quit")){
-    printf("quit: Termina la ejecucion del shell\n");
+    else if (!strcmp(tr[0], "create")){
+    printf("create [-f] [name]: Crea un directorio o un fichero (-f)\n");
   }
-  else if (!strcmp(tr[0],"exit")){
-    printf("exit: Termina la ejecucion del shell\n");
-  } else
-    printf("%s no encontrado", tr[0]);
+  else if (!strcmp(tr[0], "stat")){
+    printf("stat [-long] [-link] [-acc] name1 name2 ... lista ficheros\n");
+    printf("\t-long: listado largo\n");
+    printf("\t-acc: accesstime\n");
+    printf("\t-link: si es enlace simbolico, el path contenido\n");
+  }
+  else if (!strcmp(tr[0], "list")){
+    printf("list [-reca] [-recb] [-hid] [-long] [-link] [-acc] n1 n2 ... lista de directorios\n");
+    printf("\t-hid: incluye los ficheros ocultos\n");
+    printf("\t-recb: recursivo(antes)\n");
+    printf("\t-reca: recursivo(despues)\n");
+    printf("\tresto: parametros como stat\n");
+  }
+  else if (!strcmp(tr[0], "delete")){
+    printf("delete [name1 name2 ...]: Borra ficheros o directorios vacios\n");
+  }
+  else if (!strcmp(tr[0], "deltree")){
+    printf("deltree [name1 name2 ...]: Borra ficheros o directorios no vacios recursivamente\n");
+  }
+  else
+    printf("%s no encontrado\n", tr[0]);
 }
 
 //Funcion para obtener la hora del sistema
-void Cmd_time() {
-  // Obtener la hora actual
-  time_t t;
-  struct tm *tm_info;
+void Cmd_time(char *tr[]) {
+  if (tr[0] == NULL) {
+    // Obtener la hora actual
+    time_t t;
+    struct tm *tm_info;
 
-  time(&t);
-  tm_info = localtime(&t);
+    time(&t);
+    tm_info = localtime(&t);
 
-  // Formatear la hora en el formato hh:mm:ss
-  char hora[9]; // Espacio suficiente para almacenar "hh:mm:ss\0"
-  strftime(hora, sizeof(hora), "%H:%M:%S", tm_info);
+    // Formatear la hora en el formato hh:mm:ss
+    char hora[9]; // Espacio suficiente para almacenar "hh:mm:ss\0"
+    strftime(hora, sizeof(hora), "%H:%M:%S", tm_info);
 
-  // Imprimir la hora formateada
-  printf("%s\n", hora);
+    // Imprimir la hora formateada
+    printf("%s\n", hora);
+  } else
+    printf("Opcion no encontrada\n");
 }
 
 //Funcion para imprimir por pantalla la informacion del sistema
-void Cmd_infosys() {
-  struct utsname Cmd_infosys;
+void Cmd_infosys(char *tr[]) {
+  if (tr[0] == NULL) {
+    struct utsname Cmd_infosys;
 
-  if (uname(&Cmd_infosys) == -1) {
-    perror("uname");
-    return;
-  }
+    if (uname(&Cmd_infosys) == -1) {
+      perror("uname\n");
+      return;
+    }
 
-  printf("System Information:\n");
-  printf("  Operating System: %s\n", Cmd_infosys.sysname);
-  printf("  Node Name: %s\n", Cmd_infosys.nodename);
-  printf("  Release: %s\n", Cmd_infosys.release);
-  printf("  Version: %s\n", Cmd_infosys.version);
-  printf("  Machine: %s\n", Cmd_infosys.machine);
-
+    printf("System Information:\n");
+    printf("  Operating System: %s\n", Cmd_infosys.sysname);
+    printf("  Node Name: %s\n", Cmd_infosys.nodename);
+    printf("  Release: %s\n", Cmd_infosys.release);
+    printf("  Version: %s\n", Cmd_infosys.version);
+    printf("  Machine: %s\n", Cmd_infosys.machine);
+  } else
+    printf("Opcion no encontrada\n");
 }
 
 void Cmd_chdir(char *tr[]){
-    char dir[MAX];
-    if (tr[0]==NULL)
-        printf("%s \n", getcwd(dir,MAX));
-    else if(chdir(tr[0]) == 0){
-        printf("%s \n", getcwd(dir,MAX));
-    }else if(chdir(tr[0])==-1){
-        perror("Imposible cambiar de directorio\n");
-    }
+  char dir[MAX];
+  if (tr[0]==NULL)
+    printf("%s \n", getcwd(dir,MAX));
+  else if(chdir(tr[0]) == 0){
+    printf("%s \n", getcwd(dir,MAX));
+  }else if(chdir(tr[0])==-1){
+    perror("Cannot change directory\n");
+  }
 }
 
 //Funcion que maneja las opciones de la funcion Cmd_authors
 void Cmd_authors(char *tr[]) {
   if (tr[0] == NULL) {
-    printf("Javier: j.rrodriguez1@udc.es\n");
-    printf("Miguel: m.cortond\n");
+    printf("logins -> j.rrodriguez1@udc.es & m.cortond\n");
+    printf("names -> Javier Rodriguez & Miguel Corton\n");
   } else if (strcmp(tr[0], "-l") == 0) {
-    printf("j.rrodriguez1@udc.es\nm.cortond\n");
+    printf("logins -> j.rrodriguez1@udc.es & m.cortond\n");
   } else if (strcmp(tr[0], "-n") == 0) {
-    printf("Javier Rodriguez\nMiguel Corton\n");
-  } 
+    printf("names -> Javier Rodriguez & Miguel Corton\n");
+  } else
+    printf("Opcion no encontrada\n");
+}
+
+void Cmd_create(char *tr[]){
+    
+  char dir[MAX];
+    
+  if(tr[0]==NULL){
+    printf("%s\n",getcwd(dir,MAX));
+  }else if(!strcmp(tr[0],"-f")){
+    if(tr[1] == NULL) { 
+      printf("%s\n",getcwd(dir,MAX)); 
+    }else{        
+      int ch= open(tr[1], O_CREAT | O_EXCL, 0775); //CREAT, crea nuevos ficheros, EXCL evita sobreescribir
+    	if(ch == -1) perror("Ha ocurrido un error, no se pudo crear el fichero");
+    }
+  }else{
+    if(mkdir(tr[0],0775) == -1) perror("Ha ocurridon un error, no se pudo crear el directorio");
+  }
+}
+/*
+//Set 1 to each parameter if it is input
+struct statParams getParams(char *tr[], struct statParams pr){
+
+   for(int i=0; tr[i] != NULL; i++){
+        if (!strcmp(tr[i],"-long")) 	 pr.lon=1;
+        else if (!strcmp(tr[i],"-acc"))  pr.acc=1;
+        else if (!strcmp(tr[i],"-link")) pr.lnk=1;
+        else if (!strcmp(tr[i],"-hid"))  pr.hid=1;
+        else if (!strcmp(tr[i],"-reca")) pr.reca=1;
+        else if (!strcmp(tr[i],"-recb")) pr.recb=1;
+   }
+   return pr;
+}
+
+void Cmd_stat(char *tr[]){
+
+    char dir[MAX];
+    
+    if(tr[0] == NULL){
+    	printf("%s\n",getcwd(dir,MAX));
+    	printf("Please input a name of a file or directory\n");
+    }else{    
+      struct statParams pr={0,0,0,0,0,0};
+      int counterFiles=0;      
+      pr=getParams(tr,pr);
+      
+      for(int i=0; tr[i]!=NULL ; i++){
+      	if((strcmp(tr[i],"-long")) && (strcmp(tr[i],"-acc")) && (strcmp(tr[i],"-link"))){
+      	    printStats(tr[i],&pr);
+      	    counterFiles++;
+      	}           	
+      }
+      if(counterFiles==0){ //if we type the command with parameters but there isn't any file
+         printf("%s\n",getcwd(dir,MAX));
+         printf("Please input a name of a file or directory\n");
+      } 
+   }    
+}
+*/
+void Cmd_exit(tListF fileList, tList commandList){
+  freeList(&commandList);
+  freeListF(&fileList);
+  free(commandList);
+  free(fileList);
+  exit(0);
 }
 
 struct cmd {
-    char *nombre;
-    void (*pfuncion) (char **)
+  char *nombre;
+  void (*pfuncion) (char **);
 };
 
-struct cmd procesar_comando[]={
-        {"date",Cmd_date},
-        {"time",Cmd_time},
-        {"infosys",Cmd_infosys},
-        {"authors",Cmd_authors},
-        {"comand",Cmd_comand},
-        {"hist",Cmd_hist},
-        {"pid",Cmd_pid},
-        {"chdir",Cmd_chdir},
-        {"help",Cmd_help},
-        {"open",Cmd_open},
-        {"close",Cmd_close},
-        {"dup",Cmd_dup},
-        {"exit", Cmd_exit},
-        {"quit", Cmd_exit},
-        {"bye", Cmd_exit},
-}   ;
+struct cmd cmds[]={
+  {"date",Cmd_date},
+  {"time",Cmd_time},
+  {"infosys",Cmd_infosys},
+  {"authors",Cmd_authors},
+  {"pid",Cmd_pid},
+  {"chdir",Cmd_chdir},
+  {"help",Cmd_help},
+  {"create", Cmd_create},
+};
 
-/*
-//Funcion encargada de llamar a la funcion correspondiente
-void procesar_comando(char *tr[], tList commandList, tListF fileList) {
-
-  addCommand(&commandList, *tr);
-  if (!strcmp(tr[0], "exit") || !strcmp(tr[0], "quit") || !strcmp(tr[0], "bye")) {
-    freeList(&commandList);
-    freeListF(&fileList);
-    free(commandList);
-    free(fileList);
-    exit(0);
-  } else if (!strcmp(tr[0], "date"))
-    Cmd_date();
-  else if(!strcmp(tr[0], "time"))
-    Cmd_time();
-  else if (!strcmp(tr[0], "infosys"))
-    Cmd_infosys();
-  else if (!strcmp(tr[0], "authors"))
-    Cmd_authors(tr+1);
-  else if (!strcmp(tr[0], "comand"))
-    Cmd_comand(commandList, fileList, atoi(*(tr+1)));
-  else if (!strcmp(tr[0], "hist"))
-    Cmd_hist(&commandList, tr+1);
-  else if(!strcmp(tr[0], "pid"))
-    Cmd_pid(tr+1);
-  else if (!strcmp(tr[0], "chdir"))
-    Cmd_chdir(tr+1);
-  else if (!strcmp(tr[0], "help"))
-    Cmd_help(tr+1);
-  else if (!strcmp(tr[0], "open"))
+void procesar_comando(char *tr[], tList comandList, tListF fileList) {
+  int i;
+  if (tr[0] == NULL)
+    return;
+  if (!strcmp("comand", tr[0]))
+    Cmd_comand(comandList, fileList, tr+1);
+  else if (!strcmp("hist", tr[0]))
+    Cmd_hist(&comandList, tr+1);
+  else if (!strcmp("exit", tr[0]) || !strcmp("quit", tr[0]) || !strcmp("bye", tr[0]))
+    Cmd_exit(fileList, comandList);
+  else if (!strcmp("open", tr[0]))
     Cmd_open(tr+1, fileList);
-  else if (!strcmp(tr[0], "close"))
+  else if (!strcmp("close", tr[0]))
     Cmd_close(tr+1, fileList);
-  else if (!strcmp(tr[0], "dup"))
+  else if (!strcmp("dup", tr[0]))
     Cmd_dup(tr+1, fileList);
-  else if (!strcmp((tr+1), "listopen"))
+  else if (!strcmp("listopen", tr[0]))
     Cmd_listopen(fileList);
-  else 
-    printf("Command not found\n");
-  
+  else {
+    for (i=0; cmds[i].nombre != NULL; i++){
+      if (!strcmp(cmds[i].nombre, tr[0])) {
+        (cmds[i].pfuncion) (tr+1);
+        return;
+      }
+    }
+    printf("Comando %s no encontrado. Consulte la lista de comandos disponibles con help\n", tr[0]);
+  }
 }
-*/
 
-int main(int argc, char *argv[]) {
+int main() {
   char comando[MAX]; // Usamos un array de caracteres para almacenar el comando
-  char *arg;
+  char *tr[MAX];
   tList commandList;
   tListF fileList;
   createList(&commandList);
@@ -341,16 +423,17 @@ int main(int argc, char *argv[]) {
   while (1) {
     printf("-> ");
 
-    gets(comando); // Leemos la entrada del usuario
+    fgets(comando, MAX, stdin); // Leemos la entrada del usuario
+
+    comando[strcspn(comando, "\n")] = '\0'; // Eliminamos el carácter de salto de línea
 
     if (comando[0] == '\0') //Si el usuario solo pulsa enter termina la funcion y vuelve al bucle
       continue;
     else {
-      TrocearCadena(comando, &arg);
-      insertElement(arg, commandList);
-      procesar_comando(arg, commandList, fileList);
+      insertElement(comando, &commandList);
+      TrocearCadena(comando, tr);
+      procesar_comando(tr, commandList, fileList);
     }
   }
-
   return 0;
 }

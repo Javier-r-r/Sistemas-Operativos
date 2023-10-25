@@ -3,6 +3,19 @@
 #ifndef FILE_LIST
 #define FILE_LIST
 
+#include <stdio.h>
+#include <string.h>
+#include <errno.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/utsname.h>
+#include <time.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <fcntl.h>
+#include <pwd.h>
+#include <grp.h>
+#include <dirent.h>
 #include <stdbool.h>
 #define FNULL NULL
 #define MAX 1024
@@ -44,9 +57,7 @@ void printListF(tListF L);
 
 void freeListF(tListF *L);
 
-void printUntilNF(tListF L, int n);
-
-tItemF getItemF(char *file, tListF L);
+tItemF getItemF(int df, tListF L);
 
 int countItemsF(tListF L);
 
