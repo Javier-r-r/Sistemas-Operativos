@@ -489,7 +489,7 @@ void Cmd_deltree(char *tr[]){
   if(tr[0]==NULL)
     printf("%s \n", getcwd(dir,MAX));
   else {
-    while(tr[i]!=NULL){
+    while(tr[i]!=NULL) {
       if(lstat(tr[i], &check)!=0) 
         perror(strcat("Es imposible borrar ", tr[i]));
       else {
@@ -517,8 +517,9 @@ void Cmd_deltree(char *tr[]){
               if(remove(tr[i])==-1)
                 perror(strcat("Es imposible borrar ", tr[i]));
             }
-        }
-      }i++;
+          }
+        }i++;
+      } 
     }
   }
 }
@@ -547,6 +548,7 @@ struct cmd cmds[]={
   {"create", Cmd_create},
   {"delete", Cmd_delete},
   {"stat", Cmd_stat},
+  {"deltree", Cmd_deltree}
 };
 
 void procesar_comando(char *tr[], tList comandList, tListF fileList) {
