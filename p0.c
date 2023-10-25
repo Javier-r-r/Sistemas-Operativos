@@ -14,6 +14,7 @@
 #include <pwd.h>
 #include <grp.h>
 #include <dirent.h>
+#define _GNU_SOURCE
 #include <stdbool.h>
 #include "comand_list.h"
 
@@ -52,10 +53,6 @@ void Cmd_comand(tList commandList, tListF fileList, char *tr[]) {
     printf("Comando no encontrado\n");
 }
 
-void Cmd_listopen (tListF fileList) {
-  printListF(fileList);
-}
-
 //Muestra el historial de comandos, empieza enumerando por 1
 void Cmd_hist(tList *commandList, char *tr[]){
   int ncmd;
@@ -79,9 +76,9 @@ void Cmd_close (char *tr[], tListF fileList)
     printListF(fileList);
     return;
   }
-  
+
   if (close(df)==-1)
-    perror("Imposible cerrar descriptor");
+    perror("Inposible cerrar descriptor");
   else {
     removeElementF(df, &fileList);
   }
@@ -112,6 +109,7 @@ void Cmd_open (char *tr[], tListF fileList)
     tItemF newItem;
     newItem.descriptor = df;
     newItem.mode = mode;
+    newItem.descriptor = -1;
     strncpy(newItem.nombre, tr[0], MAX);
     insertElementF(newItem, &fileList);
     printf("Añadida entrada a la tabla ficheros abiertos: descriptor %d, modo %d, nombre %s\n", df, mode, tr[0]);
@@ -121,17 +119,14 @@ void Cmd_open (char *tr[], tListF fileList)
 void Cmd_dup (char * tr[], tListF fileList)
 { 
   int df;
-  char aux[MAX], *p;
   
   if (tr[0]==NULL || (df=atoi(tr[0]))<0) { /*no hay parametro*/
     printListF(fileList);           /*o el descriptor es menor que 0*/
     return;
   }
-  p = getItemF(df, fileList).nombre;
   tItemF item;
-  sprintf(aux, "dup %d (%s)", df, p);
   item.descriptor = fcntl(df,F_DUPFD);
-  strncpy(item.nombre, aux, MAX);
+  item.descriptor = df;
   insertElementF(item, &fileList);
 }
 
@@ -166,7 +161,7 @@ void Cmd_date(char *tr[]) {
 void Cmd_help(char *tr[])
 {
   if(tr[0] == NULL){
-    printf("Ayuda sobre los comandos, comandos disponilbes:\n-authors\n-pid\n-date\n-time\n-hist\n-comand\n-infosys\n-help\n-exit\n-quit\n-bye\n");
+    printf("Ayuda sobre los comandos, comandos disponilbes:\n-authors\n-pid\n-date\n-time\n-hist\n-comand\n-infosys\n-help\n-exit\n-quit\n-bye\n-open\n-close\n-dup\n-listopen\n-create\n-stat\n-list\n-delete\n-deltree\n");
   }
   else if (!strcmp(tr[0],"authors")){
     printf("authors [-l][-n]: Muestra los nombres y/o logins de los autores\n");
@@ -319,7 +314,7 @@ void Cmd_create(char *tr[]){
     if(mkdir(tr[0],0775) == -1) perror("Ha ocurridon un error, no se pudo crear el directorio");
   }
 }
-/*
+
 //Set 1 to each parameter if it is input
 struct statParams getParams(char *tr[], struct statParams pr){
 
@@ -334,13 +329,115 @@ struct statParams getParams(char *tr[], struct statParams pr){
    return pr;
 }
 
+char *lastDir(char *directories){
+    char *dirs[MAX/2];
+    int i=1;
+    
+    dirs[0]=strtok(directories, "/ ");
+    while((dirs[i]=strtok(NULL, "/ "))!=NULL)
+        i++;
+    if(i==1) return dirs[0]; //only one token
+    else return dirs[i-1];   //otherwise, last one
+}
+
+char LetraTF (mode_t m)
+{
+     switch (m&S_IFMT) { /*and bit a bit con los bits de formato,0170000 */
+        case S_IFSOCK: return 's'; /*socket */
+        case S_IFLNK: return 'l'; /*symbolic link*/
+        case S_IFREG: return '-'; /* fichero normal*/
+        case S_IFBLK: return 'b'; /*block device*/
+        case S_IFDIR: return 'd'; /*directorio */ 
+        case S_IFCHR: return 'c'; /*char device*/
+        case S_IFIFO: return 'p'; /*pipe*/
+        default: return '?'; /*desconocido, no deberia aparecer*/
+     }
+}
+
+
+char * ConvierteModo2 (mode_t m)
+{
+  static char permisos[12];
+  strcpy (permisos,"---------- ");
+    
+  permisos[0]=LetraTF(m);
+  if (m&S_IRUSR) permisos[1]='r';    /*propietario*/
+  if (m&S_IWUSR) permisos[2]='w';
+  if (m&S_IXUSR) permisos[3]='x';
+  if (m&S_IRGRP) permisos[4]='r';    /*grupo*/
+  if (m&S_IWGRP) permisos[5]='w';
+  if (m&S_IXGRP) permisos[6]='x';
+  if (m&S_IROTH) permisos[7]='r';    /*resto*/
+  if (m&S_IWOTH) permisos[8]='w';
+  if (m&S_IXOTH) permisos[9]='x';
+  if (m&S_ISUID) permisos[3]='s';    /*setuid, setgid y stickybit*/
+  if (m&S_ISGID) permisos[6]='s';
+  if (m&S_ISVTX) permisos[9]='t';
+    
+  return permisos;
+}  
+
+void printStats(char *tr, struct statParams *pr){
+    struct stat fs; 
+    // lstad instead of stat because if path is a symbolic link,then the link itslef is stat-ed, not the file    
+    char copy[MAX];
+    strcpy(copy,tr);
+    
+    if(lstat(tr,&fs)){     
+      fprintf(stderr, "****error al acceder a %s: ", tr);
+      perror("");
+      return;
+    }
+    
+    int total= pr->lon + pr->lnk + pr->acc + pr->hid + pr->reca + pr->recb;
+    
+    if(total==0){    	
+        printf("% 8ld  %s\n", fs.st_size,lastDir(tr));
+    }else{
+       	
+    	//-long option
+    	if(pr->lon){
+    	
+    	    struct group *gr;
+            struct passwd *pw;
+            char buffer[MAX];
+            char symBuff[MAX]="";  //initialize to "" for avoiding memory errors
+    
+    	    if((pw=getpwuid(fs.st_uid)) == NULL) {
+            fprintf(stderr, "****error al acceder a %s ", tr);
+            perror("");
+          }
+    	    if((gr=getgrgid(fs.st_gid)) == NULL) {
+            fprintf(stderr, "****error al acceder a %s ", tr);
+            perror("");
+          }
+    	
+    	    //-acc option
+    	    if((pr->acc) == 1) strftime(buffer,MAX,"%Y/%m/%d-%H:%M",localtime(&fs.st_atime));
+    	    else strftime(buffer,MAX,"%Y/%m/%d-%H:%M",localtime(&fs.st_mtime));
+    	 	
+    	     printf("%s   %ld (  %ld)   %s   %s",buffer,fs.st_nlink,fs.st_ino,pw->pw_name,gr->gr_name);
+    	     printf(" %s\t% 8ld %s",ConvierteModo2(fs.st_mode),fs.st_size,lastDir(tr));
+       	    
+    	    //-link option
+    	    if(!pr->lnk){
+    	       printf("\n");
+    	    }else{
+    	       if(pr->lnk && (readlink(copy,symBuff,MAX) != -1))  
+    	          printf(" ->%s\n",symBuff);
+    	       else printf(" ->\n");
+    	    }
+         	    
+        }else printf("% 8ld  %s\n", fs.st_size,lastDir(tr));
+   }
+}
+
 void Cmd_stat(char *tr[]){
 
     char dir[MAX];
     
     if(tr[0] == NULL){
     	printf("%s\n",getcwd(dir,MAX));
-    	printf("Please input a name of a file or directory\n");
     }else{    
       struct statParams pr={0,0,0,0,0,0};
       int counterFiles=0;      
@@ -354,11 +451,79 @@ void Cmd_stat(char *tr[]){
       }
       if(counterFiles==0){ //if we type the command with parameters but there isn't any file
          printf("%s\n",getcwd(dir,MAX));
-         printf("Please input a name of a file or directory\n");
       } 
    }    
 }
+
+
+void Cmd_delete(char *tr[]){
+  char dir[MAX];
+  int i=0;
+  if(tr[0]==NULL) {
+    printf("%s \n", getcwd(dir,MAX));
+  } else {
+    while(tr[i]!=NULL){
+      if(remove(tr[i])==-1)
+        perror(strcat("Es imposible borrar ", tr[i]));
+      i++;
+    }
+  }
+}
+
+/*
+OPCIONES:
++ directorio vacío → no se puede borrar
+- directorio con otro directorio dentro → entra y vuelve al inicio (recursividad)
+- directorio con ficheros dentro → borra el directorio
++ ficheros → borra los ficheros
 */
+void Cmd_deltree(char *tr[]){ 
+  char dir[MAX];
+  int i=0;
+  struct stat check;
+  DIR *direct;
+  struct dirent *direntd;
+  char *aux[MAX];
+  int j=0;
+
+  if(tr[0]==NULL)
+    printf("%s \n", getcwd(dir,MAX));
+  else {
+    while(tr[i]!=NULL) {
+      if(lstat(tr[i], &check)!=0) 
+        perror(strcat("Es imposible borrar ", tr[i]));
+      else {
+        if(S_ISDIR(check.st_mode)!=1) { //si no es un directorio
+          if(remove(tr[i])==-1) 
+            perror(strcat("Es imposible borrar ", tr[i]));
+        } else {
+          if(remove(tr[i])==-1) {
+            if((direct=opendir(tr[i]))==NULL)
+              perror("No se puede abrir el directorio");
+            else {
+              while((direntd = readdir(direct)) != NULL) {
+                if((strcmp(direntd->d_name,".")!=0) && (strcmp(direntd->d_name,"..")!=0)) {
+                  aux[j]=direntd->d_name;
+                  j++;
+                }
+              } closedir(direct);
+              if(j==0)
+                remove(tr[i]);
+              else {
+                chdir(tr[i]);
+                Cmd_deltree(aux);
+                chdir("..");
+              }
+              if(remove(tr[i])==-1)
+                perror(strcat("Es imposible borrar ", tr[i]));
+            }
+          }
+        }i++;
+      } 
+    }
+  }
+}
+
 void Cmd_exit(tListF fileList, tList commandList){
   freeList(&commandList);
   freeListF(&fileList);
@@ -381,6 +546,9 @@ struct cmd cmds[]={
   {"chdir",Cmd_chdir},
   {"help",Cmd_help},
   {"create", Cmd_create},
+  {"delete", Cmd_delete},
+  {"stat", Cmd_stat},
+  {"deltree", Cmd_deltree}
 };
 
 void procesar_comando(char *tr[], tList comandList, tListF fileList) {
@@ -399,8 +567,6 @@ void procesar_comando(char *tr[], tList comandList, tListF fileList) {
     Cmd_close(tr+1, fileList);
   else if (!strcmp("dup", tr[0]))
     Cmd_dup(tr+1, fileList);
-  else if (!strcmp("listopen", tr[0]))
-    Cmd_listopen(fileList);
   else {
     for (i=0; cmds[i].nombre != NULL; i++){
       if (!strcmp(cmds[i].nombre, tr[0])) {
