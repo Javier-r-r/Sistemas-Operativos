@@ -52,10 +52,6 @@ void Cmd_comand(tList commandList, tListF fileList, char *tr[]) {
     printf("Comando no encontrado\n");
 }
 
-void Cmd_listopen (tListF fileList) {
-  printListF(fileList);
-}
-
 //Muestra el historial de comandos, empieza enumerando por 1
 void Cmd_hist(tList *commandList, char *tr[]){
   int ncmd;
@@ -79,9 +75,9 @@ void Cmd_close (char *tr[], tListF fileList)
     printListF(fileList);
     return;
   }
-  
+
   if (close(df)==-1)
-    perror("Imposible cerrar descriptor");
+    perror("Inposible cerrar descriptor");
   else {
     removeElementF(df, &fileList);
   }
@@ -112,6 +108,7 @@ void Cmd_open (char *tr[], tListF fileList)
     tItemF newItem;
     newItem.descriptor = df;
     newItem.mode = mode;
+    newItem.descriptor = -1;
     strncpy(newItem.nombre, tr[0], MAX);
     insertElementF(newItem, &fileList);
     printf("Añadida entrada a la tabla ficheros abiertos: descriptor %d, modo %d, nombre %s\n", df, mode, tr[0]);
@@ -121,17 +118,14 @@ void Cmd_open (char *tr[], tListF fileList)
 void Cmd_dup (char * tr[], tListF fileList)
 { 
   int df;
-  char aux[MAX], *p;
   
   if (tr[0]==NULL || (df=atoi(tr[0]))<0) { /*no hay parametro*/
     printListF(fileList);           /*o el descriptor es menor que 0*/
     return;
   }
-  p = getItemF(df, fileList).nombre;
   tItemF item;
-  sprintf(aux, "dup %d (%s)", df, p);
   item.descriptor = fcntl(df,F_DUPFD);
-  strncpy(item.nombre, aux, MAX);
+  item.descriptor = df;
   insertElementF(item, &fileList);
 }
 
@@ -166,7 +160,7 @@ void Cmd_date(char *tr[]) {
 void Cmd_help(char *tr[])
 {
   if(tr[0] == NULL){
-    printf("Ayuda sobre los comandos, comandos disponilbes:\n-authors\n-pid\n-date\n-time\n-hist\n-comand\n-infosys\n-help\n-exit\n-quit\n-bye\n");
+    printf("Ayuda sobre los comandos, comandos disponilbes:\n-authors\n-pid\n-date\n-time\n-hist\n-comand\n-infosys\n-help\n-exit\n-quit\n-bye\n-open\n-close\n-dup\n-listopen\n-create\n-stat\n-list\n-delete\n-deltree\n");
   }
   else if (!strcmp(tr[0],"authors")){
     printf("authors [-l][-n]: Muestra los nombres y/o logins de los autores\n");
@@ -359,6 +353,22 @@ void Cmd_stat(char *tr[]){
    }    
 }
 */
+
+void Cmd_delete(char *tr[]){
+  char dir[MAX];
+  //char print[MAX];
+  int i=0;
+  if(tr[0]==NULL){
+    printf("%s \n", getcwd(dir,MAX));
+  } else {
+    while(tr[i]!=NULL){
+      if(remove(tr[i])==-1)
+        strcat("Es imposible borrar ", tr[i]);
+      i++;
+    }
+  }
+}
+
 void Cmd_exit(tListF fileList, tList commandList){
   freeList(&commandList);
   freeListF(&fileList);
@@ -381,6 +391,7 @@ struct cmd cmds[]={
   {"chdir",Cmd_chdir},
   {"help",Cmd_help},
   {"create", Cmd_create},
+  {"delete", Cmd_delete}
 };
 
 void procesar_comando(char *tr[], tList comandList, tListF fileList) {
@@ -399,8 +410,6 @@ void procesar_comando(char *tr[], tList comandList, tListF fileList) {
     Cmd_close(tr+1, fileList);
   else if (!strcmp("dup", tr[0]))
     Cmd_dup(tr+1, fileList);
-  else if (!strcmp("listopen", tr[0]))
-    Cmd_listopen(fileList);
   else {
     for (i=0; cmds[i].nombre != NULL; i++){
       if (!strcmp(cmds[i].nombre, tr[0])) {
