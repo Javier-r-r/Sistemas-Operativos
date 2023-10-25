@@ -303,15 +303,68 @@ void Cmd_stat(char *tr[]){
 
 void Cmd_delete(char *tr[]){
   char dir[MAX];
-  //char print[MAX];
   int i=0;
-  if(tr[0]==NULL){
+  if(tr[0]==NULL) {
     printf("%s \n", getcwd(dir,MAX));
   } else {
     while(tr[i]!=NULL){
       if(remove(tr[i])==-1)
-        strcat("Es imposible borrar ", tr[i]);
+        perror(strcat("Es imposible borrar ", tr[i]));
       i++;
+    }
+  }
+}
+
+/*
+OPCIONES:
++ directorio vacío → no se puede borrar
+- directorio con otro directorio dentro → entra y vuelve al inicio (recursividad)
+- directorio con ficheros dentro → borra el directorio
++ ficheros → borra los ficheros
+*/
+void Cmd_deltree(char *tr[]){ 
+  char dir[MAX];
+  int i=0;
+  struct stat check;
+  DIR *direct;
+  struct dirent *direntd;
+  char *aux[MAX];
+  int j=0;
+
+  if(tr[0]==NULL)
+    printf("%s \n", getcwd(dir,MAX));
+  else {
+    while(tr[i]!=NULL) {
+      if(lstat(tr[i], &check)!=0) 
+        perror(strcat("Es imposible borrar ", tr[i]));
+      else {
+        if(S_ISDIR(check.st_mode)!=1) { //si no es un directorio
+          if(remove(tr[i])==-1) 
+            perror(strcat("Es imposible borrar ", tr[i]));
+        } else {
+          if(remove(tr[i])==-1) {
+            if((direct=opendir(tr[i]))==NULL)
+              perror("No se puede abrir el directorio");
+            else {
+              while((direntd = readdir(direct)) != NULL) {
+                if((strcmp(direntd->d_name,".")!=0) && (strcmp(direntd->d_name,"..")!=0)) {
+                  aux[j]=direntd->d_name;
+                  j++;
+                }
+              } closedir(direct);
+              if(j==0)
+                remove(tr[i]);
+              else {
+                chdir(tr[i]);
+                Cmd_deltree(aux);
+                chdir("..");
+              }
+              if(remove(tr[i])==-1)
+                perror(strcat("Es imposible borrar ", tr[i]));
+            }
+          }
+        }i++;
+      } 
     }
   }
 }
@@ -335,6 +388,7 @@ struct cmd cmds[]={
   {"create", Cmd_create},
   {"delete", Cmd_delete},
   {"stat", Cmd_stat},
+  {"deltree", Cmd_deltree}
 };
 
 void procesar_comando(char *tr[], tList comandList, tListF fileList) {
