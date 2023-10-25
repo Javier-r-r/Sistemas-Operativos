@@ -26,7 +26,6 @@ typedef struct tItemF{
   int index;
   int descriptor;
   char nombre[MAX];
-  int descriptorp;
 }tItemF;
 
 typedef struct tNodeF *tPosF;

@@ -18,33 +18,25 @@
 
 char *modeToString(int mode) {
     char *result;
-    
-    switch (mode) {
-        case O_RDONLY:
-            result = "O_RDONLY";
-            break;
-        case O_WRONLY:
-            result = "O_WRONLY";
-            break;
-        case O_RDWR:
-            result = "O_RDWR";
-            break;
-        case O_CREAT:
-            result = "O_CREAT";
-            break;
-        case O_EXCL:
-            result = "O_EXCL";
-            break;
-        case O_APPEND:
-            result = "O_APPEND";
-            break;
-        case O_TRUNC:
-            result = "O_TRUNC";
-            break;
-        default:
-            result = "";
-            break;
-    }
+
+    if (mode == -1) 
+        perror("Error modeToString\n");
+    else if (mode == O_CREAT)
+        result = "O_CREAT";
+    else if (mode == O_EXCL)
+        result = "O_EXCL";
+    else if (mode == O_RDONLY)
+        result = "O_RDONLY";
+    else if (mode == O_WRONLY)
+        result = "O_WRONLY";
+    else if (mode == O_RDWR)
+        result = "O_RDWR";
+    else if (mode == O_APPEND)
+        result = "O_APPEND";
+    else if (mode == O_TRUNC)
+        result = "O_TRUNC";
+    else
+        result = "";
     
     return result;
 }
@@ -122,27 +114,53 @@ void removeElementF(int df, tListF *L){
             free(current);
             return;
         }
-
         previous = current;
         current = current->next;
     }
 }
 
+//Funcion para intercambiar dos elementos de la lista
+void swap(tPosF a, tPosF b) {
+    tItemF temp = a->file;
+    a->file = b->file;
+    b->file = temp;
+}
 
+// Función para ordenar la lista en función del descriptor
+void sortListF(tListF *L) {
+    int swapped;
+    tPosF ptr1;
+    tPosF lptr = FNULL;
+
+    if (*L == FNULL)
+        return;
+
+    do {
+        swapped = 0;
+        ptr1 = (*L)->next;
+
+        while (ptr1->next != lptr) {
+            if (ptr1->file.descriptor > ptr1->next->file.descriptor) {
+                // Intercambia los elementos si el descriptor es mayor
+                swap(ptr1, ptr1->next);
+                swapped = 1;
+            }
+            ptr1 = ptr1->next;
+        }
+        lptr = ptr1;
+    } while (swapped);
+}
 
 void printListF(tListF L){
-    tPosF p=L->next;
+    if (firstF(L) != FNULL) {
+        sortListF(&L);
+        tPosF p=L->next;
        
-       while(p != FNULL){
-            if (p->file.descriptorp >= 0) {
-                printf("descriptor: %d -> dup %d (%s) %s\n",p->file.descriptor,p->file.descriptorp, p->file.nombre, modeToString(p->file.mode));
-                p=p->next;
-            } else {
-                printf("descriptor: %d -> %s %s\n",p->file.descriptor,p->file.nombre, modeToString(p->file.mode));
-                p=p->next;
-            }
+        while(p != FNULL){
+            printf("descriptor: %d -> %s %s\n",p->file.descriptor,p->file.nombre, modeToString(p->file.mode));
+            p=p->next;
         }
-    
+    }
 }
 
 void removeElementAux(tPosF p, tListF *L){
@@ -173,7 +191,7 @@ tItemF getItemF(int df, tListF L){
     return q->file;
 }
 
-int countItemsF(tListF L) {
+/*int countItemsF(tListF L) {
   int count = 0;
   tPosF p;
   for (p = firstF(L); p != NULL; p = nextF(p, L))
@@ -181,3 +199,4 @@ int countItemsF(tListF L) {
   return count;
 }
 
+*/

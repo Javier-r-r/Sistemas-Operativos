@@ -52,6 +52,10 @@ void Cmd_comand(tList commandList, tListF fileList, char *tr[]) {
     printf("Comando no encontrado\n");
 }
 
+void Cmd_listopen (tListF fileList) {
+  printListF(fileList);
+}
+
 //Muestra el historial de comandos, empieza enumerando por 1
 void Cmd_hist(tList *commandList, char *tr[]){
   int ncmd;
@@ -75,9 +79,9 @@ void Cmd_close (char *tr[], tListF fileList)
     printListF(fileList);
     return;
   }
-
+  
   if (close(df)==-1)
-    perror("Inposible cerrar descriptor");
+    perror("Imposible cerrar descriptor");
   else {
     removeElementF(df, &fileList);
   }
@@ -108,7 +112,6 @@ void Cmd_open (char *tr[], tListF fileList)
     tItemF newItem;
     newItem.descriptor = df;
     newItem.mode = mode;
-    newItem.descriptorp = -1;
     strncpy(newItem.nombre, tr[0], MAX);
     insertElementF(newItem, &fileList);
     printf("Añadida entrada a la tabla ficheros abiertos: descriptor %d, modo %d, nombre %s\n", df, mode, tr[0]);
@@ -118,14 +121,17 @@ void Cmd_open (char *tr[], tListF fileList)
 void Cmd_dup (char * tr[], tListF fileList)
 { 
   int df;
+  char aux[MAX], *p;
   
   if (tr[0]==NULL || (df=atoi(tr[0]))<0) { /*no hay parametro*/
     printListF(fileList);           /*o el descriptor es menor que 0*/
     return;
   }
+  p = getItemF(df, fileList).nombre;
   tItemF item;
+  sprintf(aux, "dup %d (%s)", df, p);
   item.descriptor = fcntl(df,F_DUPFD);
-  item.descriptorp = df;
+  strncpy(item.nombre, aux, MAX);
   insertElementF(item, &fileList);
 }
 
@@ -393,6 +399,8 @@ void procesar_comando(char *tr[], tList comandList, tListF fileList) {
     Cmd_close(tr+1, fileList);
   else if (!strcmp("dup", tr[0]))
     Cmd_dup(tr+1, fileList);
+  else if (!strcmp("listopen", tr[0]))
+    Cmd_listopen(fileList);
   else {
     for (i=0; cmds[i].nombre != NULL; i++){
       if (!strcmp(cmds[i].nombre, tr[0])) {
