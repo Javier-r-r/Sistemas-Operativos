@@ -82,7 +82,9 @@ void Cmd_open (char *tr[], tListF fileList) {
 }
 
 void Cmd_dup (char * tr[], tListF fileList) { 
+
   int df;
+  char aux[MAX], *p;
   
   if (tr[0]==NULL || (df=atoi(tr[0]))<0) { /*no hay parametro*/
     printListF(fileList);           /*o el descriptor es menor que 0*/
