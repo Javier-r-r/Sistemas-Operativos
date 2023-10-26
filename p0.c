@@ -301,7 +301,25 @@ void Cmd_stat(char *tr[]){
   }    
 }
 
+
 void Cmd_delete(char *tr[]){
+  char dir[MAX];
+  int i=0;
+  char message[MAX];
+  if(tr[0]==NULL) {
+    printf("%s \n", getcwd(dir,MAX));
+  } else {
+    while(tr[i]!=NULL){
+      strcat(strcpy(message,"Es imposible borrar "), tr[i]);  //Al colocar el mensaje aquí sí funciona, si no da Violación de segmento
+      if(remove(tr[i])==-1)
+        perror(message);
+      i++;
+    }
+  }
+}
+
+/*
+void Cmd_delete(char *tr[]){                      Código anterior → salta una violaciónd de segmento
   char dir[MAX];
   int i=0;
   if(tr[0]==NULL) {
@@ -314,6 +332,7 @@ void Cmd_delete(char *tr[]){
     }
   }
 }
+*/
 
 /*
 OPCIONES:
