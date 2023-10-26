@@ -192,7 +192,8 @@ void traverseOut(char *tr,struct statParams *pr, char * original) { //auxiliary 
         }
         closedir(direct);
     }else{
-        perror("There was an error ");
+      fprintf(stderr, "****error al acceder a %s: ", tr);
+      perror("");
     }
     if(!strcmp(tr, original)){ //print stats of first directory        
         printf("************%s\n", original);
@@ -228,7 +229,11 @@ void traverseIn(char *tr,struct statParams *pr) { //auxiliary function for -reca
 void printLstats(char *tr, struct statParams *pr) {
     struct stat fs;      
     //lstad instead of stat because if path is a symbolic link,then the link itslef is stat-ed, not the file
-    if(lstat(tr,&fs)){ perror("There was an error"); return;}
+    if(lstat(tr,&fs)){ 
+      fprintf(stderr, "****error al acceder a %s: ", tr);
+      perror("");
+      return;
+    }
     int total= pr->lon + pr->lnk + pr->acc + pr->hid + pr->reca + pr->recb;
     
     if(total==0){

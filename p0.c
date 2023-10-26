@@ -128,81 +128,6 @@ void Cmd_date(char *tr[]) {
   printf("%s\n", fecha);
 }
 
-//Imprime información sobre el comando que se le pasa, si no pasa comando muestra por pantalla los comandos disponibles
-void Cmd_help(char *tr[]) {
-  if(tr[0] == NULL){
-    printf("Ayuda sobre los comandos, comandos disponilbes:\n-authors\n-pid\n-date\n-time\n-hist\n-comand\n-infosys\n-help\n-exit\n-quit\n-bye\n-open\n-close\n-dup\n-listopen\n-create\n-stat\n-list\n-delete\n-deltree\n");
-  }
-  else if (!strcmp(tr[0],"authors")){
-    printf("authors [-l][-n]: Muestra los nombres y/o logins de los autores\n");
-  }
-  else if (!strcmp(tr[0],"pid")){
-    printf("pid [-p]: Muestra el pid del shell o de su proceso padre\n");
-  }
-  else if (!strcmp(tr[0],"date")){
-    printf("date: Muestra la fecha actual\n");
-  }
-  else if (!strcmp(tr[0], "time")) {
-    printf("time: Muestra la hora actual\n");
-  }
-  else if (!strcmp(tr[0],"hist")){
-    printf("hist [-c][-N]: Muestra (o borra) el historico de comandos\n");
-    printf("\t-c: borra el historico\n");
-    printf("\tN: Muestra los primeros N comandos\n");
-  }
-  else if (!strcmp(tr[0],"comand")){
-    printf("comand -N: Repite el comando N (del historico)\n");
-  }
-  else if (!strcmp(tr[0],"infosys")){
-    printf("infosys: Muestra informacion de la maquina donde se ejcuta el shell\n");
-  }
-  else if (!strcmp(tr[0],"help")){
-    printf("help [cmd]: Muestra una lista de los comandos disponibles\n");
-    printf("\tcmd: Muestra ayuda sobre el comando cmd\n");
-  }
-  else if (!strcmp(tr[0],"bye") || !(strcmp(tr[0], "quit")) || !strcmp(tr[0], "exit")){
-    printf("%s: Termina la ejecucion del shell\n", tr[0]);
-  }
-  else if (!strcmp(tr[0], "open")) {
-    printf("open [fich] [m1 m2...]  Abre el fichero fich y lo anade a la lista de ficheros abiertos del shell\n");
-    printf("\tm1,m2... es el modo de apertura (or bit a bit de los siguientes):\n");
-    printf("\tcr: O_CREAT\tap: O_APPEND\n\tew: O_EXCL\tro: O_RDONLY\n\tre: O_RDRW\two: O_WRONLY\n\ttr: O_TRUNC\n");
-  }
-  else if (!strcmp(tr[0], "close")) {
-    printf("close df: Cierra el descripor df y elimina el correspondiente fichero de la lista de ficheros abiertos\n");
-  }
-  else if (!strcmp(tr[0], "dup")){
-    printf("dup df: Duplica el descriptor de fichero df y anade una nueva entrada a la lista de ficheros abiertos\n");
-  }
-  else if (!strcmp(tr[0], "listopen")){
-    printf("listopen [n]; Lista los ficheros abiertos (al menos n) del shell\n");
-  }
-    else if (!strcmp(tr[0], "create")){
-    printf("create [-f] [name]: Crea un directorio o un fichero (-f)\n");
-  }
-  else if (!strcmp(tr[0], "stat")){
-    printf("stat [-long] [-link] [-acc] name1 name2 ... lista ficheros\n");
-    printf("\t-long: listado largo\n");
-    printf("\t-acc: accesstime\n");
-    printf("\t-link: si es enlace simbolico, el path contenido\n");
-  }
-  else if (!strcmp(tr[0], "list")){
-    printf("list [-reca] [-recb] [-hid] [-long] [-link] [-acc] n1 n2 ... lista de directorios\n");
-    printf("\t-hid: incluye los ficheros ocultos\n");
-    printf("\t-recb: recursivo(antes)\n");
-    printf("\t-reca: recursivo(despues)\n");
-    printf("\tresto: parametros como stat\n");
-  }
-  else if (!strcmp(tr[0], "delete")){
-    printf("delete [name1 name2 ...]: Borra ficheros o directorios vacios\n");
-  }
-  else if (!strcmp(tr[0], "deltree")){
-    printf("deltree [name1 name2 ...]: Borra ficheros o directorios no vacios recursivamente\n");
-  }
-  else
-    printf("%s no encontrado\n", tr[0]);
-}
-
 //Funcion para obtener la hora del sistema
 void Cmd_time(char *tr[]) {
   if (tr[0] == NULL) {
@@ -276,10 +201,10 @@ void Cmd_create(char *tr[]){
       printf("%s\n",getcwd(dir,MAX)); 
     }else{        
       int ch= open(tr[1], O_CREAT | O_EXCL, 0775); //CREAT, crea nuevos ficheros, EXCL evita sobreescribir
-    	if(ch == -1) perror("Ha ocurrido un error, no se pudo crear el fichero");
+    	if(ch == -1) perror("Imposible creae");
     }
   }else{
-    if(mkdir(tr[0],0775) == -1) perror("Ha ocurridon un error, no se pudo crear el directorio");
+    if(mkdir(tr[0],0775) == -1) perror("Imposible crear");
   }
 }
 
@@ -322,22 +247,6 @@ void Cmd_delete(char *tr[]){
     }
   }
 }
-
-/*
-void Cmd_delete(char *tr[]){                      Código anterior → salta una violaciónd de segmento
-  char dir[MAX];
-  int i=0;
-  if(tr[0]==NULL) {
-    printf("%s \n", getcwd(dir,MAX));
-  } else {
-    while(tr[i]!=NULL){
-      if(remove(tr[i])==-1)
-        perror(strcat("Es imposible borrar ", tr[i]));
-      i++;
-    }
-  }
-}
-*/
 
 /*
 OPCIONES:
@@ -414,6 +323,81 @@ void Cmd_list(char *tr[]){
       printf("%s\n",getcwd(dir,MAX));
     } 
   }    
+}
+
+//Imprime información sobre el comando que se le pasa, si no pasa comando muestra por pantalla los comandos disponibles
+void Cmd_help(char *tr[]) {
+  if(tr[0] == NULL){
+    printf("Ayuda sobre los comandos, comandos disponilbes:\n-authors\n-pid\n-date\n-time\n-hist\n-comand\n-infosys\n-help\n-exit\n-quit\n-bye\n-open\n-close\n-dup\n-listopen\n-create\n-stat\n-list\n-delete\n-deltree\n");
+  }
+  else if (!strcmp(tr[0],"authors")){
+    printf("authors [-l][-n]: Muestra los nombres y/o logins de los autores\n");
+  }
+  else if (!strcmp(tr[0],"pid")){
+    printf("pid [-p]: Muestra el pid del shell o de su proceso padre\n");
+  }
+  else if (!strcmp(tr[0],"date")){
+    printf("date: Muestra la fecha actual\n");
+  }
+  else if (!strcmp(tr[0], "time")) {
+    printf("time: Muestra la hora actual\n");
+  }
+  else if (!strcmp(tr[0],"hist")){
+    printf("hist [-c][-N]: Muestra (o borra) el historico de comandos\n");
+    printf("\t-c: borra el historico\n");
+    printf("\tN: Muestra los primeros N comandos\n");
+  }
+  else if (!strcmp(tr[0],"comand")){
+    printf("comand -N: Repite el comando N (del historico)\n");
+  }
+  else if (!strcmp(tr[0],"infosys")){
+    printf("infosys: Muestra informacion de la maquina donde se ejcuta el shell\n");
+  }
+  else if (!strcmp(tr[0],"help")){
+    printf("help [cmd]: Muestra una lista de los comandos disponibles\n");
+    printf("\tcmd: Muestra ayuda sobre el comando cmd\n");
+  }
+  else if (!strcmp(tr[0],"bye") || !(strcmp(tr[0], "quit")) || !strcmp(tr[0], "exit")){
+    printf("%s: Termina la ejecucion del shell\n", tr[0]);
+  }
+  else if (!strcmp(tr[0], "open")) {
+    printf("open [fich] [m1 m2...]  Abre el fichero fich y lo anade a la lista de ficheros abiertos del shell\n");
+    printf("\tm1,m2... es el modo de apertura (or bit a bit de los siguientes):\n");
+    printf("\tcr: O_CREAT\tap: O_APPEND\n\tew: O_EXCL\tro: O_RDONLY\n\tre: O_RDRW\two: O_WRONLY\n\ttr: O_TRUNC\n");
+  }
+  else if (!strcmp(tr[0], "close")) {
+    printf("close df: Cierra el descripor df y elimina el correspondiente fichero de la lista de ficheros abiertos\n");
+  }
+  else if (!strcmp(tr[0], "dup")){
+    printf("dup df: Duplica el descriptor de fichero df y anade una nueva entrada a la lista de ficheros abiertos\n");
+  }
+  else if (!strcmp(tr[0], "listopen")){
+    printf("listopen [n]; Lista los ficheros abiertos (al menos n) del shell\n");
+  }
+    else if (!strcmp(tr[0], "create")){
+    printf("create [-f] [name]: Crea un directorio o un fichero (-f)\n");
+  }
+  else if (!strcmp(tr[0], "stat")){
+    printf("stat [-long] [-link] [-acc] name1 name2 ... lista ficheros\n");
+    printf("\t-long: listado largo\n");
+    printf("\t-acc: accesstime\n");
+    printf("\t-link: si es enlace simbolico, el path contenido\n");
+  }
+  else if (!strcmp(tr[0], "list")){
+    printf("list [-reca] [-recb] [-hid] [-long] [-link] [-acc] n1 n2 ... lista de directorios\n");
+    printf("\t-hid: incluye los ficheros ocultos\n");
+    printf("\t-recb: recursivo(antes)\n");
+    printf("\t-reca: recursivo(despues)\n");
+    printf("\tresto: parametros como stat\n");
+  }
+  else if (!strcmp(tr[0], "delete")){
+    printf("delete [name1 name2 ...]: Borra ficheros o directorios vacios\n");
+  }
+  else if (!strcmp(tr[0], "deltree")){
+    printf("deltree [name1 name2 ...]: Borra ficheros o directorios no vacios recursivamente\n");
+  }
+  else
+    printf("%s no encontrado\n", tr[0]);
 }
 
 void Cmd_exit(tListF fileList, tList commandList){
