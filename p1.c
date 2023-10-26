@@ -45,7 +45,7 @@ void Cmd_close (char *tr[], tListF fileList) {
   }
 
   if (close(df)==-1)
-    perror("Inposible cerrar descriptor");
+    perror("Imposible cerrar descriptor");
   else {
     removeElementF(df, &fileList);
   }
@@ -201,7 +201,7 @@ void Cmd_create(char *tr[]){
       printf("%s\n",getcwd(dir,MAX)); 
     }else{        
       int ch= open(tr[1], O_CREAT | O_EXCL, 0775); //CREAT, crea nuevos ficheros, EXCL evita sobreescribir
-    	if(ch == -1) perror("Imposible creae");
+    	if(ch == -1) perror("Imposible crear");
     }
   }else{
     if(mkdir(tr[0],0775) == -1) perror("Imposible crear");

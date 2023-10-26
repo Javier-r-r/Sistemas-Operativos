@@ -19,6 +19,7 @@
 #include <dirent.h>
 #include <stdbool.h>
 #include "ficheros_list.h"
+#include "comand_list.h"
 
 struct cmd {
   char *nombre;
@@ -34,6 +35,7 @@ struct statParams{
   int recb;
 };
 
+void procesar_comando(char *tr[], tList commandList, tListF fileList);
 struct statParams getParams(char *tr[], struct statParams pr);
 void printStats(char *tr, struct statParams *pr);
 int TrocearCadena(char *cadena, char *trozos[]);

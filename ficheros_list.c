@@ -94,23 +94,23 @@ bool insertElementF(tItemF item, tListF *L){
    }
 }
 
-void removeElementF(int df, tListF *L){
-    
+void removeElementF(int df, tListF *L) {
     tPosF current = firstF(*L);
     tPosF previous = FNULL;
 
     while (current != FNULL) {
         if (current->file.descriptor == df) {
-            // El elemento actual tiene el descriptor que queremos eliminar
             if (previous == FNULL) {
                 // Si no hay elemento anterior, significa que es el primer elemento
-                *L = current->next;
+                (*L)->next = current->next;
+                if ((*L)->next == FNULL) {
+                    // Si el primer elemento era el único en la lista, actualiza *L a FNULL
+                    *L = FNULL;
+                }
             } else {
-                // Si hay un elemento anterior, enlazamos el anterior con el siguiente
                 previous->next = current->next;
             }
 
-            // Liberamos la memoria del elemento actual
             free(current);
             return;
         }
