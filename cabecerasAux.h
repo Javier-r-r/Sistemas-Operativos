@@ -35,8 +35,6 @@ struct statParams{
 };
 
 struct statParams getParams(char *tr[], struct statParams pr);
-char *lastDir(char *directories);
-char LetraTF (mode_t m);
-char * ConvierteModo2 (mode_t m);
 void printStats(char *tr, struct statParams *pr);
 int TrocearCadena(char *cadena, char *trozos[]);
+void printLstats(char *tr, struct statParams *pr);

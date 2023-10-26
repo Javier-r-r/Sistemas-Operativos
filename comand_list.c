@@ -75,7 +75,7 @@ void printList(tList L){
     tPosL p=L->next;
        
        while(p != LNULL){
-            printf("%4d-> %s\n",p->data.index,p->data.comando);
+            printf("%4d-> %s\n",p->data.index+1,p->data.comando);
             p=p->next;
         }
     

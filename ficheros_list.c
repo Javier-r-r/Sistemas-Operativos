@@ -191,12 +191,12 @@ tItemF getItemF(int df, tListF L){
     return q->file;
 }
 
-/*int countItemsF(tListF L) {
-  int count = 0;
-  tPosF p;
-  for (p = firstF(L); p != NULL; p = nextF(p, L))
-    count ++;
-  return count;
+bool existsDescriptor(int df, tListF L) {
+    tPosF p;
+    for (p = firstF(L); p != NULL; p = nextF(p, L)) {
+        if (p->file.descriptor == df) {
+            return true; // Se encontró el descriptor en la lista
+        }
+    }
+    return false; // El descriptor no se encontró en la lista
 }
-
-*/

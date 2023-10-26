@@ -88,18 +88,20 @@ void Cmd_dup (char * tr[], tListF fileList) {
     printListF(fileList);           /*o el descriptor es menor que 0*/
     return;
   }
-  tItemF item;
-  item.descriptor = fcntl(df,F_DUPFD);
-  item.descriptor = df;
-  insertElementF(item, &fileList);
+  if (existsDescriptor(df, fileList)) {
+    tItemF item;
+    item.descriptor = fcntl(df,F_GETFD);
+    insertElementF(item, &fileList);
+  } else
+    printf("Imposible duplicar descriptor: Bad file descriptor\n");
 }
 
 //Imprime el pid del comando que se esta ejecutando el la red 
 void Cmd_pid(char *tr[]) {
   if (tr[0] == NULL)
-    printf("Process pid: %d \n", getpid());
+    printf("Pid del shell: %d \n", getpid());
   else if (strcmp(tr[0], "-p") == 0)
-    printf("Parent process pid: %d \n", getppid());
+    printf("Pid del padre del shell: %d \n", getppid());
   else
     printf("Opcion no encontrada\n");
 }
@@ -240,10 +242,8 @@ void Cmd_chdir(char *tr[]){
   char dir[MAX];
   if (tr[0]==NULL)
     printf("%s \n", getcwd(dir,MAX));
-  else if(chdir(tr[0]) == 0){
-    printf("%s \n", getcwd(dir,MAX));
-  }else if(chdir(tr[0])==-1){
-    perror("Cannot change directory\n");
+  else if(chdir(tr[0]) == -1) {
+    perror("Imposible cambiar directorio");
   }
 }
 
@@ -369,6 +369,29 @@ void Cmd_deltree(char *tr[]){
   }
 }
 
+void Cmd_list(char *tr[]){
+  char dir[MAX];
+    
+  if(tr[0] == NULL){
+    printf("%s\n",getcwd(dir,MAX));
+  }else{
+    struct statParams pr={0,0,0,0,0,0};
+    int counterFiles=0;   	
+    pr=getParams(tr,pr);
+
+    for(int i=0; tr[i]!=NULL ; i++){
+      
+      if((strcmp(tr[i],"-long")) && (strcmp(tr[i],"-acc")) && (strcmp(tr[i],"-link")) && (strcmp(tr[i],"-hid")) && (strcmp(tr[i],"-reca")) && (strcmp(tr[i],"-recb")) ){
+        printLstats(tr[i],&pr);
+      	counterFiles++;
+      }           	
+    }        
+    if(counterFiles==0){ //if we type the command with parameters but there isn't any file
+      printf("%s\n",getcwd(dir,MAX));
+    } 
+  }    
+}
+
 void Cmd_exit(tListF fileList, tList commandList){
   freeList(&commandList);
   freeListF(&fileList);
@@ -388,7 +411,8 @@ struct cmd cmds[]={
   {"create", Cmd_create},
   {"delete", Cmd_delete},
   {"stat", Cmd_stat},
-  {"deltree", Cmd_deltree}
+  {"deltree", Cmd_deltree},
+  {"list", Cmd_list},
 };
 
 void procesar_comando(char *tr[], tList comandList, tListF fileList) {

@@ -59,7 +59,6 @@ void freeListF(tListF *L);
 
 tItemF getItemF(int df, tListF L);
 
-int countItemsF(tListF L);
-
+bool existsDescriptor(int df, tListF L);
 
 #endif //FILE_LIST
