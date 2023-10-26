@@ -1,4 +1,4 @@
-EXECUTABLE=p0
+EXECUTABLE=p1
 CFLAGS= -Wall -g
 
 p0: p0.c
