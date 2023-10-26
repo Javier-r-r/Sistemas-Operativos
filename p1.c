@@ -250,34 +250,41 @@ void Cmd_delete(char *tr[]){
 
 /*
 OPCIONES:
-+ directorio vacío → no se puede borrar
+- directorio vacío → no se puede borrar
 - directorio con otro directorio dentro → entra y vuelve al inicio (recursividad)
 - directorio con ficheros dentro → borra el directorio
-+ ficheros → borra los ficheros
+- ficheros → borra los ficheros
 */
 void Cmd_deltree(char *tr[]){ 
   char dir[MAX];
   int i=0;
+  int j;
   struct stat check;
   DIR *direct;
   struct dirent *direntd;
   char *aux[MAX];
-  int j=0;
+  char message[MAX];
 
   if(tr[0]==NULL)
     printf("%s \n", getcwd(dir,MAX));
   else {
     while(tr[i]!=NULL) {
-      if(lstat(tr[i], &check)!=0) 
-        perror(strcat("Es imposible borrar ", tr[i]));
-      else {
-        if(S_ISDIR(check.st_mode)!=1) { //si no es un directorio
-          if(remove(tr[i])==-1) 
-            perror(strcat("Es imposible borrar ", tr[i]));
+      j=0;
+      char *string = strdup(tr[i]);
+      if(lstat(string, &check)!=0) {
+        strcat(strcpy(message,"Es imposible borrar "), tr[i]);
+        perror(message);
+      } else {
+        if(LetraTF(check.st_mode) != 'd') { //si no es un directorio
+          printf("Borrando fichero %s\n", tr[i]);
+          if(remove(tr[i])==-1) { 
+            strcat(strcpy(message,"Es imposible borrar "), tr[i]);
+            perror(message);
+          } return;
         } else {
           if(remove(tr[i])==-1) {
             if((direct=opendir(tr[i]))==NULL)
-              perror("No se puede abrir el directorio");
+              perror("No se puede abrir el directorio ");
             else {
               while((direntd = readdir(direct)) != NULL) {
                 if((strcmp(direntd->d_name,".")!=0) && (strcmp(direntd->d_name,"..")!=0)) {
@@ -288,16 +295,17 @@ void Cmd_deltree(char *tr[]){
               if(j==0)
                 remove(tr[i]);
               else {
-                chdir(tr[i]);
+                chdir(string);
                 Cmd_deltree(aux);
                 chdir("..");
               }
-              if(remove(tr[i])==-1)
-                perror(strcat("Es imposible borrar ", tr[i]));
+              if(remove(string)==-1) {
+                perror("Es imposible borrar ");
+              
             }
           }
-        }i++;
-      } 
+        }
+      } i++;
     }
   }
 }
