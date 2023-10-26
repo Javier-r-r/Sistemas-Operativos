@@ -89,8 +89,11 @@ void Cmd_dup (char * tr[], tListF fileList) {
     return;
   }
   if (existsDescriptor(df, fileList)) {
+    p = getItemF(df, fileList).nombre;
     tItemF item;
-    item.descriptor = fcntl(df,F_GETFD);
+    sprintf(aux, "dup %d (%s)", df, p);
+    item.descriptor = fcntl(df,F_DUPFD);
+    strncpy(item.nombre, aux, MAX);
     insertElementF(item, &fileList);
   } else
     printf("Imposible duplicar descriptor: Bad file descriptor\n");
