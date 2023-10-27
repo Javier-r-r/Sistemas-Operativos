@@ -163,6 +163,16 @@ void printListF(tListF L){
     }
 }
 
+void printUntilNF(tListF L, int n) {
+    tPosF p=L->next;
+
+    while (p != FNULL){
+    	if(p->file.index < n)
+            printf("descriptor: %d -> %s %s\n",p->file.descriptor,p->file.nombre, modeToString(p->file.mode));
+        p=p->next;
+    }
+}
+
 void removeElementAux(tPosF p, tListF *L){
     
     if(p->next != FNULL){

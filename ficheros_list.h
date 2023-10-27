@@ -53,6 +53,8 @@ void removeElementF(int df, tListF *L);
 
 void printListF(tListF L);
 
+void printUntilNF(tListF L, int n);
+
 void freeListF(tListF *L);
 
 tItemF getItemF(int df, tListF L);

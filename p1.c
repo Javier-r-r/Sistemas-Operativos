@@ -101,6 +101,17 @@ void Cmd_dup (char * tr[], tListF fileList) {
     printf("Imposible duplicar descriptor: Bad file descriptor\n");
 }
 
+void Cmd_listopen(char *tr[], tListF fileList) {
+  if (tr[0] == NULL)
+    printListF(fileList);
+  else if (atoi(tr[0])) {
+    int ncmd;
+    ncmd=(int) (abs(strtol(tr[0],NULL,10)));
+    printUntilNF(fileList, ncmd);
+  } else 
+    printf("Opcion no encontrada\n");
+}
+
 //Imprime el pid del comando que se esta ejecutando el la red 
 void Cmd_pid(char *tr[]) {
   if (tr[0] == NULL)
@@ -344,6 +355,9 @@ void Cmd_help(char *tr[]) {
   else if (!strcmp(tr[0],"pid")){
     printf("pid [-p]: Muestra el pid del shell o de su proceso padre\n");
   }
+  else if (!strcmp(tr[0], "chdir")) {
+    printf("chdir [dir]: Cambia (o muestra) el directorio actual del shell\n");
+  }
   else if (!strcmp(tr[0],"date")){
     printf("date: Muestra la fecha actual\n");
   }
@@ -380,7 +394,7 @@ void Cmd_help(char *tr[]) {
     printf("dup df: Duplica el descriptor de fichero df y anade una nueva entrada a la lista de ficheros abiertos\n");
   }
   else if (!strcmp(tr[0], "listopen")){
-    printf("listopen [n]; Lista los ficheros abiertos (al menos n) del shell\n");
+    printf("listopen [n]: Lista los ficheros abiertos (al menos n) del shell\n");
   }
     else if (!strcmp(tr[0], "create")){
     printf("create [-f] [name]: Crea un directorio o un fichero (-f)\n");
@@ -447,6 +461,8 @@ void procesar_comando(char *tr[], tList comandList, tListF fileList) {
     Cmd_close(tr+1, fileList);
   else if (!strcmp("dup", tr[0]))
     Cmd_dup(tr+1, fileList);
+  else if (!strcmp("listopen", tr[0]))
+    Cmd_listopen(tr+1, fileList);
   else {
     for (i=0; cmds[i].nombre != NULL; i++){
       if (!strcmp(cmds[i].nombre, tr[0])) {

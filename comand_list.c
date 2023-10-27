@@ -97,7 +97,7 @@ void printUntilN(tList L, int n){
 
     while (p != LNULL){
     	if(p->data.index < n)
-        printf("%4d-> %s\n",p->data.index+1,p->data.comando);
+            printf("%4d-> %s\n",p->data.index+1,p->data.comando);
         p=p->next;
     }
 }
