@@ -40,3 +40,4 @@ struct statParams getParams(char *tr[], struct statParams pr);
 void printStats(char *tr, struct statParams *pr);
 int TrocearCadena(char *cadena, char *trozos[]);
 void printLstats(char *tr, struct statParams *pr);
+char LetraTF (mode_t m);
