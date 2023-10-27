@@ -124,19 +124,22 @@ void Cmd_pid(char *tr[]) {
 
 //Funcion para obtener la fecha del sistema
 void Cmd_date(char *tr[]) {
-  // Obtener la fecha actual
-  time_t t;
-  struct tm *tm_info;
+  if (tr[0] == NULL) {
+    // Obtener la fecha actual
+    time_t t;
+    struct tm *tm_info;
 
-  time(&t);
-  tm_info = localtime(&t);
+    time(&t);
+    tm_info = localtime(&t);
 
-  // Formatear la fecha en el formato DD/MM/YYYY
-  char fecha[11]; // Espacio suficiente para almacenar "DD/MM/YYYY\0"
-  strftime(fecha, sizeof(fecha), "%d/%m/%Y", tm_info);
+    // Formatear la fecha en el formato DD/MM/YYYY
+    char fecha[11]; // Espacio suficiente para almacenar "DD/MM/YYYY\0"
+    strftime(fecha, sizeof(fecha), "%d/%m/%Y", tm_info);
 
-  // Imprimir la fecha en el formato correcto
-  printf("%s\n", fecha);
+    // Imprimir la fecha en el formato correcto
+    printf("%s\n", fecha);
+  } else
+    printf("Opcion no encontrada\n");
 }
 
 //Funcion para obtener la hora del sistema
@@ -251,7 +254,7 @@ void Cmd_delete(char *tr[]){
     printf("%s \n", getcwd(dir,MAX));
   } else {
     while(tr[i]!=NULL){
-      strcat(strcpy(message,"Es imposible borrar "), tr[i]);  //Al colocar el mensaje aquí sí funciona, si no da Violación de segmento
+      strcat(strcpy(message,"Imposible borrar "), tr[i]);  //Al colocar el mensaje aquí sí funciona, si no da Violación de segmento
       if(remove(tr[i])==-1)
         perror(message);
       i++;
@@ -283,19 +286,21 @@ void Cmd_deltree(char *tr[]) {
       j=0;
       char *string = strdup(tr[i]);
       if(lstat(string, &check)!=0) {
-        strcat(strcpy(message,"Es imposible borrar "), tr[i]);
+        strcat(strcpy(message,"Imposible borrar "), tr[i]);
         perror(message);
       } else {
         if(LetraTF(check.st_mode) != 'd') { //si no es un directorio
           printf("Borrando fichero %s\n", tr[i]);
           if(remove(tr[i])==-1) { 
-            strcat(strcpy(message,"Es imposible borrar "), tr[i]);
+            strcat(strcpy(message,"Imposible borrar "), tr[i]);
             perror(message);
           } return;
         } else {
           if(remove(tr[i])==-1) {
-            if((direct=opendir(tr[i]))==NULL)
-              perror("No se puede abrir el directorio ");
+            if((direct=opendir(tr[i]))==NULL){
+              strcat(strcpy(message,"Imposible abrir directorio "), tr[i]);
+              perror(message);
+            }
             else {
               while((direntd = readdir(direct)) != NULL) {
                 if((strcmp(direntd->d_name,".")!=0) && (strcmp(direntd->d_name,"..")!=0)) {
@@ -310,9 +315,10 @@ void Cmd_deltree(char *tr[]) {
                 Cmd_deltree(aux);
                 chdir("..");
               }
-              if(remove(string)==-1)
-                perror("Es imposible borrar ");
-              
+              if(remove(string)==-1) {
+                strcat(strcpy(message,"Imposible borrar "), tr[i]);
+                perror(message);
+              }
             }
           }
         }
