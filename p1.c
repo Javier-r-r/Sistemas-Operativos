@@ -255,7 +255,7 @@ OPCIONES:
 - directorio con ficheros dentro → borra el directorio
 - ficheros → borra los ficheros
 */
-void Cmd_deltree(char *tr[]){ 
+void Cmd_deltree(char *tr[]) { 
   char dir[MAX];
   int i=0;
   int j;
@@ -299,7 +299,7 @@ void Cmd_deltree(char *tr[]){
                 Cmd_deltree(aux);
                 chdir("..");
               }
-              if(remove(string)==-1) {
+              if(remove(string)==-1)
                 perror("Es imposible borrar ");
               
             }
