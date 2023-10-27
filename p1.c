@@ -1,7 +1,6 @@
 //Javier Rodriguez Rodriguez || j.rrodriguez1@udc.es, grupo 4.2
 //Miguel Corton Deben || mcortond@udc.es, grupo 4.2
 
-#include "comand_list.h"
 #include "cabecerasAux.h"
 
 //Funcion que realiza el comando N de la lista hist
