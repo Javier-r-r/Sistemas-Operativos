@@ -107,6 +107,7 @@ tItemL getItem(int n, tList L){
     tPosL q;
     for(q=L->next;q->data.index!=n;q=q->next);
     return q->data;
+    
 }
 
 int countItems(tList L) {
