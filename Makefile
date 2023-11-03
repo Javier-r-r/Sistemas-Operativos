@@ -16,9 +16,7 @@ funcionesAux.o: funcionesAux.c cabecerasAux.h
 limpiar: 
 	rm p2 comand_list.o ficheros_list.o funcionesAux.o
 
-shell: p1.c
-	gcc $(CFLAGS) -o $(EXECUTABLE) p1.c comand_list.c ficheros_list.c comand_list.h ficheros_list.h funcionesAux.c cabecerasAux.h
-	./p1
+all: p2 funcionesAux.o comand_list.o ficheros_list.o
 
 valgrind: 
 	valgrind --leak-check=full --show-reachable=yes ./${EXECUTABLE}
