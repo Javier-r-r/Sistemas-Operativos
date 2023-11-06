@@ -19,4 +19,4 @@ limpiar:
 all: p2 funcionesAux.o comand_list.o ficheros_list.o
 
 valgrind: 
-	valgrind --leak-check=full --show-reachable=yes ./${EXECUTABLE}
+	valgrind --leak-check=full --show-reachable=yes ./p2

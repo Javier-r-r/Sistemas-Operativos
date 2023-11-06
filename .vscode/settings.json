@@ -1,9 +1,0 @@
-{
-  "files.associations": {
-    "string.h": "c",
-    "file_list.h": "c",
-    "ficheros_list.h": "c",
-    "pwd.h": "c",
-    "dirent.h": "c"
-  }
-}
