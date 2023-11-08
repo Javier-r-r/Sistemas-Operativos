@@ -503,10 +503,14 @@ void Cmd_help(char *tr[]) {
     printf("deltree [name1 name2 ...]: Borra ficheros o directorios no vacios recursivamente\n");
   } 
   else if (!strcmp(tr[0], "malloc")) {
-    printf("");
+    printf("malloc [-free] [tam]: Asigna un bloque de memoria de tamano tam con malloc\n");
+    printf("\t-free: deasigna un bloque de memoria de tamano tam asignado con malloc\n");
   }
   else if (!strcmp(tr[0], "shared")) {
-    printf("");
+    printf("shared [-free|-create|-delkey] cl [tam]: Asigna memoria compartida con la clave cl en el programa\n");
+    printf("\t-create cl tam: asigna (creando) el bloque de memoria compartida de clave cl y tamaño tam\n");
+    printf("\t-free cl: desmapea el bloque de memoria compartida de clave cl\n");
+    printf("\t-delkey cl: elimina del sistema (sin desmapear) la clave de memoria cl\n");
   }
   else
     printf("%s no encontrado\n", tr[0]);
