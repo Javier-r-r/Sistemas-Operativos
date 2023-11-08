@@ -4,7 +4,7 @@
 #include "cabecerasAux.h"
 
 //Funcion que realiza el comando N de la lista hist
-void Cmd_comand(tList commandList, tListF fileList, char *tr[]) {
+void Cmd_comand(tList commandList, tListF fileList, tListM memoryList, char *tr[]) {
   int N = atoi (tr[0]);
   if (N) {
     if (countItems(commandList) <= N) {
@@ -14,7 +14,7 @@ void Cmd_comand(tList commandList, tListF fileList, char *tr[]) {
       tItemL item = getItem(atoi(tr[0]), commandList);
       TrocearCadena(item.comando, trozos);
       printf("Ejecutando hist (%d): %s\n", atoi(tr[0]), trozos[0]);
-      procesar_comando(trozos, commandList, fileList);
+      procesar_comando(trozos, commandList, fileList, memoryList);
     }
   } else 
     printf("Comando no encontrado\n");
@@ -349,6 +349,85 @@ void Cmd_list(char *tr[]){
   }    
 }
 
+void Cmd_malloc(char *tr[], tListM memoryList){
+   size_t tam;
+   void *p;
+     
+   if(tr[1]==NULL){		
+   	printf("******List of malloc assigned blocks for process %d\n", getpid());
+   	printListMalloc(memoryList);
+   	return;
+   }
+   
+   tam=(size_t) strtoul(tr[1],NULL,10);
+   if(tam == 0){		//wrong input
+   	printf("0 byte blocks are not assigned\n");
+   	return;
+   }
+   
+   if((p=(void *) malloc(tam*sizeof(tam))) == NULL ){
+   	perror("Impossible to obtain memory with malloc");
+   } else{
+   	time_t t= time(NULL);
+        struct tm *tm = localtime(&t);
+
+   	if(insertNodeM(&memoryList, p, tam, tm,"malloc",0,0,"")){		//insert node in the list
+   		printf("Assigned %lu bytes in %p\n",(unsigned long)tam,p);
+   	}else{
+   		printf("Not possible to insert in the list of memory blocks\n");
+   	}
+   	
+   }
+}
+
+void Cmd_shared(char *tr[], tListM memoryList) {
+  if (!strcmp(tr[0], "-create"))
+    do_AllocateCreateshared(tr+1, memoryList);
+  else {
+    key_t cl;
+    size_t tam=0;	//indicates avoiding creating new one
+    void *p;
+   
+    if(tr[1] == NULL){
+   	  printf("******List of shared assigned blocks for process %d\n", getpid());
+   	  printListShared(memoryList);
+    } else {
+      cl=(key_t) strtoul(tr[1],NULL,10);
+		
+      if ((p=ObtenerMemoriaShmget(cl,tam, memoryList))==NULL)
+		    printf ("Impossible to assign shared memory key %lu:%s\n",(unsigned long) cl,strerror(errno));
+    }
+  }
+}
+
+void Cmd_createShared (char *tr[], tListM memoryList){
+  key_t cl;
+  size_t tam;
+  void *p;
+   
+  if (tr[1]==NULL || tr[2]==NULL) {
+   
+   	printf("******List of shared assigned blocks for process %d\n", getpid());
+   	if(!isEmptyListM(memoryList))
+   		printListShared(memoryList);
+	return;
+  }
+  if(!isNumberPos(tr[1])){		//invalid key
+   	printf("Not valid key\n");
+   	return;
+  }
+  cl=(key_t)  strtoul(tr[1],NULL,10);
+  tam=(size_t) strtoul(tr[2],NULL,10);
+  if (tam==0) {			//key=0
+	  printf ("0 bytes blocks are not assigned\n");
+	  return;
+  }
+  if ((p=ObtenerMemoriaShmget(cl,tam, memoryList))!=NULL)
+		printf ("%lu bytes assigned in %p\n",(unsigned long) tam, p);
+  else
+		printf ("Impossible to assign shared memory key %lu:%s\n",(unsigned long) cl,strerror(errno));
+}
+
 //Imprime información sobre el comando que se le pasa, si no pasa comando muestra por pantalla los comandos disponibles
 void Cmd_help(char *tr[]) {
   if(tr[0] == NULL){
@@ -422,16 +501,24 @@ void Cmd_help(char *tr[]) {
   }
   else if (!strcmp(tr[0], "deltree")){
     printf("deltree [name1 name2 ...]: Borra ficheros o directorios no vacios recursivamente\n");
+  } 
+  else if (!strcmp(tr[0], "malloc")) {
+    printf("");
+  }
+  else if (!strcmp(tr[0], "shared")) {
+    printf("");
   }
   else
     printf("%s no encontrado\n", tr[0]);
 }
 
-void Cmd_exit(tListF fileList, tList commandList){
+void Cmd_exit(tListF fileList, tList commandList, tListM memoryList){
   freeList(&commandList);
   freeListF(&fileList);
+  freeListM(&memoryList);
   free(commandList);
   free(fileList);
+  free(memoryList);
   exit(0);
 }
 
@@ -450,16 +537,16 @@ struct cmd cmds[]={
   {"list", Cmd_list},
 };
 
-void procesar_comando(char *tr[], tList comandList, tListF fileList) {
+void procesar_comando(char *tr[], tList comandList, tListF fileList, tListM memoryList) {
   int i;
   if (tr[0] == NULL)
     return;
   if (!strcmp("comand", tr[0]))
-    Cmd_comand(comandList, fileList, tr+1);
+    Cmd_comand(comandList, fileList, memoryList, tr+1);
   else if (!strcmp("hist", tr[0]))
     Cmd_hist(&comandList, tr+1);
   else if (!strcmp("exit", tr[0]) || !strcmp("quit", tr[0]) || !strcmp("bye", tr[0]))
-    Cmd_exit(fileList, comandList);
+    Cmd_exit(fileList, comandList, memoryList);
   else if (!strcmp("open", tr[0]))
     Cmd_open(tr+1, fileList);
   else if (!strcmp("close", tr[0]))
@@ -468,6 +555,10 @@ void procesar_comando(char *tr[], tList comandList, tListF fileList) {
     Cmd_dup(tr+1, fileList);
   else if (!strcmp("listopen", tr[0]))
     Cmd_listopen(tr+1, fileList);
+  else if (!strcmp("malloc", tr[0]))
+    Cmd_malloc(tr+1, memoryList);
+  else if (!strcmp("shared", tr[0]))
+    Cmd_shared(tr+1, memoryList);
   else {
     for (i=0; cmds[i].nombre != NULL; i++){
       if (!strcmp(cmds[i].nombre, tr[0])) {
@@ -484,8 +575,10 @@ int main() {
   char *tr[MAX];
   tList commandList;
   tListF fileList;
+  tListM memoryList;
   createList(&commandList);
   createListF(&fileList);
+  createListM(&memoryList);
 
   while (1) {
     printf("-> ");
@@ -499,7 +592,7 @@ int main() {
     else {
       insertElement(comando, &commandList);
       TrocearCadena(comando, tr);
-      procesar_comando(tr, commandList, fileList);
+      procesar_comando(tr, commandList, fileList, memoryList);
     }
   }
   return 0;

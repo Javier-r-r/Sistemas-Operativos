@@ -18,8 +18,13 @@
 #include <grp.h>
 #include <dirent.h>
 #include <stdbool.h>
+#include <sys/shm.h> 
+#include <sys/wait.h>
+#include <stddef.h>
+#include <sys/mman.h>
 #include "ficheros_list.h"
 #include "comand_list.h"
+#include "memory_list.h"
 
 struct cmd {
   char *nombre;
@@ -35,9 +40,11 @@ struct statParams{
   int recb;
 };
 
-void procesar_comando(char *tr[], tList commandList, tListF fileList);
+void procesar_comando(char *tr[], tList commandList, tListF fileList, tListM memoryList);
 struct statParams getParams(char *tr[], struct statParams pr);
 void printStats(char *tr, struct statParams *pr);
 int TrocearCadena(char *cadena, char *trozos[]);
 void printLstats(char *tr, struct statParams *pr);
 char LetraTF (mode_t m);
+bool isNumberPos(char* str);
+void * ObtenerMemoriaShmget (key_t clave, size_t tam, tListM memoryList);

@@ -1,8 +1,5 @@
-
-CFLAGS= -Wall -g
-
-p2: practica.c comand_list.h ficheros_list.h cabecerasAux.h ficheros_list.o comand_list.o funcionesAux.o
-	gcc $(CFLAGS) -o p2 practica.c ficheros_list.o comand_list.o funcionesAux.o
+p2: practica.c comand_list.h ficheros_list.h cabecerasAux.h memory_list.h ficheros_list.o comand_list.o funcionesAux.o memory_list.o
+	gcc -Wall -g -o p2 practica.c ficheros_list.o comand_list.o funcionesAux.o
 
 ficheros_list.o: ficheros_list.c ficheros_list.h
 	gcc -c ficheros_list.c
@@ -12,6 +9,9 @@ comand_list.o: comand_list.c comand_list.h
 
 funcionesAux.o: funcionesAux.c cabecerasAux.h
 	gcc -c funcionesAux.c
+
+memory_list.o: memory_list.c memory_list.h
+	gcc -c memory_list.c
 
 limpiar: 
 	rm p2 comand_list.o ficheros_list.o funcionesAux.o
