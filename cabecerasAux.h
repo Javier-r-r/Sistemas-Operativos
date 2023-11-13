@@ -48,3 +48,4 @@ void printLstats(char *tr, struct statParams *pr);
 char LetraTF (mode_t m);
 bool isNumberPos(char* str);
 void * ObtenerMemoriaShmget (key_t clave, size_t tam, tListM memoryList);
+void * MapearFichero (char * fichero, int protection, tListM memoryList);

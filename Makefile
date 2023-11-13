@@ -18,5 +18,6 @@ limpiar:
 
 all: p2 funcionesAux.o comand_list.o ficheros_list.o memory_list.o
 	./p2
+	
 valgrind: 
 	valgrind --leak-check=full --show-reachable=yes ./p2

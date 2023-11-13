@@ -280,10 +280,11 @@ void * ObtenerMemoriaShmget (key_t clave, size_t tam, tListM memoryList){
     return (NULL);
   if ((p=shmat(id,NULL,0))==(void*) -1){
     aux=errno;
-    if (tam)
+    if (tam) {
       shmctl(id,IPC_RMID,NULL);
       errno=aux;
       return (NULL);
+    }
   }
   shmctl (id,IPC_STAT,&s);
   time_t t= time(NULL);
@@ -296,5 +297,30 @@ void * ObtenerMemoriaShmget (key_t clave, size_t tam, tListM memoryList){
     printf("Memoria compartida de clave %d en %p\n",(int) clave, p);
   }
   return (p);
-  free(p);
+}
+
+void * MapearFichero (char * fichero, int protection, tListM memoryList) {
+  int df, map=MAP_PRIVATE,modo=O_RDONLY;
+  struct stat s;
+  void *p;
+    
+  char *copy=strdup(fichero);		//copy for saving the file name
+    
+  if (protection&PROT_WRITE)
+    modo=O_RDWR;
+  if (stat(fichero,&s)==-1 || (df=open(fichero, modo))==-1){
+    free(copy);
+    return NULL;
+  }
+  if ((p=mmap (NULL,s.st_size, protection,map,df,0))==MAP_FAILED){
+    free(copy);
+    return NULL;
+  }
+
+  time_t t= time(NULL);
+  struct tm *tm = localtime(&t);
+      
+  insertNodeM(&memoryList, p, (size_t)s.st_size, tm,"descriptor",0,df,copy);	//insert node in the list
+    
+  return p;
 }

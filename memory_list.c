@@ -3,7 +3,7 @@
 #include <malloc.h>
 #include <string.h>
 #include <time.h>
-
+#include <sys/mman.h>
 
 bool createNodeM(tPosML *p){
     *p=malloc(sizeof (struct tNodeM));
@@ -76,6 +76,8 @@ void removeElementM(tPosML p, tListM *L){
     if(p->next ==MNULL){
         (*L)->next=MNULL;
     }
+    if((munmap(p->data.address,p->data.size)) == -1)
+    	perror("Hubo un error con munmap");
     free(p);
       
 }
@@ -101,6 +103,9 @@ void deleteAtPositionM(tPosML r,tListM *L){
     	free(r->data.address);
     
     if(!strcmp(r->data.typeOfAllocation,"descriptor"))
+    	free(r->data.nameOfFile);
+
+    if(!strcmp(r->data.typeOfAllocation,"shared"))
     	free(r->data.nameOfFile);
     
     free(r);
@@ -174,7 +179,6 @@ void printListMmap(tListM L){
             	strftime(t,MAX, "%b %d %H:%M ",p->data.time);
             	printf("%s ",t);
             	printf("%s  (%s %d)\n",p->data.nameOfFile,p->data.typeOfAllocation,p->data.fd);
-            	
        	    }            
             p=p->next;
         }   
@@ -187,7 +191,7 @@ void freeListM(tListM *L){
         p = (*L)->next;
         aux = p;
         p=p->next;
-        removeElementM(aux,L);
+        deleteAtPositionM(aux,L);
     }
 }
 

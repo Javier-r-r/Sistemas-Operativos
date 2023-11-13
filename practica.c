@@ -420,7 +420,6 @@ void Cmd_shared(char *tr[], tListM memoryList) {
     printf("******Lista de bloques asignados shared para el proceso %d\n", getpid());
    	printListShared(memoryList);
   } else if (!strcmp(tr[0], "-create")) {
-    char message[MAX];
     key_t cl;
     size_t tam;
     void *p;
@@ -463,20 +462,20 @@ void Cmd_shared(char *tr[], tListM memoryList) {
     }
     if(!isEmptyListM(memoryList)){
     	
-    if (!isNumberPos(tr[1]) || !strcmp(tr[1],"0")){		//Clave no valida
-      printf("No hay bloque de esa clave mapeado en el proceso\n");
-    	return;
-    }
-
-    num=atoi(tr[1]);
-    	
-    for(p=(memoryList)->next; p != MNULL; p=p->next){		//Encotrar la clave
-    	if((p->data.key) == num){ // Intenta desvincular la memoria compartida (shmdt) apuntada por el nodo.
-    	  (shmdt(p->data.address) != 0) ? perror("Hubo un error:") : deleteAtPositionM(p,&memoryList); 
+      if (!isNumberPos(tr[1]) || !strcmp(tr[1],"0")){		//Clave no valida
+        printf("No hay bloque de esa clave mapeado en el proceso\n");
     	  return;
+      }
+
+      num=atoi(tr[1]);
+    	
+      for(p=(memoryList)->next; p != MNULL; p=p->next){		//Encotrar la clave
+    	  if((p->data.key) == num){ // Intenta desvincular la memoria compartida (shmdt) apuntada por el nodo.
+    	    (shmdt(p->data.address) != 0) ? perror("Hubo un error con shmdt:") : removeElementM(p,&memoryList); 
+    	    return;
+    	    }
     	  }
-    	}
-      printf("No hay bloque de esa clave mapeado en el proceso\n");	  	
+        printf("No hay bloque de esa clave mapeado en el proceso\n");	  	
 
     } else 
       printf("No hay bloque de esa clave mapeado en el proceso\n");
@@ -510,6 +509,61 @@ void Cmd_shared(char *tr[], tListM memoryList) {
     if ((p=ObtenerMemoriaShmget(cl,tam, memoryList))==NULL)
 		  printf ("Imposible asignar memoria compartida clave %lu: %s\n",(unsigned long) cl,strerror(errno));
     }
+}
+
+void Cmd_mmap (char *tr[], tListM memoryList) {
+
+  if (tr[0]==NULL){ 
+    printf("******Lista de bloques asignados mmap para el proceso %d\n", getpid());
+    if(!isEmptyListM(memoryList)) 
+      printListMmap(memoryList); 
+    return;
+  } else if(!strcmp(tr[0], "-free")) {
+
+    tPosML r=NULL;
+    tPosML p;
+    
+    if(tr[1] == NULL){
+   	  printf("******Lista de bloques asignados mmap para el proceso %d\n", getpid());
+   	  if(!isEmptyListM(memoryList))
+   		  printListMmap(memoryList);
+	    return;
+    }
+    
+    if(!isEmptyListM(memoryList)){
+    	
+    	for(p=(memoryList)->next; p != MNULL; p=p->next){	//Encuentra el fichero
+    	   if(!strcmp(tr[1],p->data.nameOfFile)){
+    	        r=p; 
+    	   	if((munmap(p->data.address,p->data.size)) == -1)
+    	   		perror("Hubo un error con munmap");
+    	   	
+    		  deleteAtPositionM(r,&memoryList);
+    	   	return;
+    	   }
+    	}
+  	  printf("Fichero %s no mapeado\n",tr[1]);
+  		
+    } else
+      printf("Fichero %s no mapeado\n",tr[1]);
+
+  } else {
+
+    char *perm;
+    void *p;
+    int protection=0;
+
+    if ((perm=tr[1])!=NULL && strlen(perm)<4) {
+      if (strchr(perm,'r')!=NULL) protection|=PROT_READ;
+      if (strchr(perm,'w')!=NULL) protection|=PROT_WRITE;
+      if (strchr(perm,'x')!=NULL) protection|=PROT_EXEC;
+    }
+
+    if ((p=MapearFichero(tr[0],protection, memoryList))==NULL)
+      perror ("Imposible mapear fichero");
+    else
+      printf ("Fichero %s mapeado en %p\n", tr[0], p);
+  }
 }
 
 //Imprime información sobre el comando que se le pasa, si no pasa comando muestra por pantalla los comandos disponibles
@@ -674,6 +728,8 @@ void procesar_comando(char *tr[], tList comandList, tListF fileList, tListM memo
     Cmd_malloc(tr+1, memoryList);
   else if (!strcmp("shared", tr[0]))
     Cmd_shared(tr+1, memoryList);
+  else if (!strcmp("mmap", tr[0]))
+    Cmd_mmap(tr+1, memoryList);
   else {
     for (i=0; cmds[i].nombre != NULL; i++){
       if (!strcmp(cmds[i].nombre, tr[0])) {
