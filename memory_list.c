@@ -82,7 +82,7 @@ void removeElementM(tPosML p, tListM *L){
 
 
 
-void deleteAtPosition(tPosML r,tListM *L){
+void deleteAtPositionM(tPosML r,tListM *L){
     tPosML p;
     
     if(r== ((*L)->next)){

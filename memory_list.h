@@ -41,7 +41,7 @@ bool insertNodeM(tListM *L, void *q, size_t s, struct tm *t,char *type, int k, i
 
 void removeElementM(tPosML p, tListM *L);
 
-void deleteAtPosition(tPosML p,tListM *L);
+void deleteAtPositionM(tPosML p,tListM *L);
 
 void printListM(tListM L);
 

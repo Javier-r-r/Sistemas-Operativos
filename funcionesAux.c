@@ -267,35 +267,34 @@ bool isNumberPos(char* str){
 }
 
 void * ObtenerMemoriaShmget (key_t clave, size_t tam, tListM memoryList){
-    void * p;
-    int aux,id,flags=0777;
-    struct shmid_ds s;
+  void * p;
+  int aux,id,flags=0777;
+  struct shmid_ds s;
     
 
-    if (tam)     /*tam distito de 0 indica crear */
-        flags=flags | IPC_CREAT | IPC_EXCL;
-    if (clave==IPC_PRIVATE)  /*no nos vale*/
-        {errno=EINVAL; return NULL;}
-    if ((id=shmget(clave, tam, flags))==-1)
-        return (NULL);
-    if ((p=shmat(id,NULL,0))==(void*) -1){
-        aux=errno;
-        if (tam)
-             shmctl(id,IPC_RMID,NULL);
-        errno=aux;
-        return (NULL);
-    }
-    shmctl (id,IPC_STAT,&s);
-    time_t t= time(NULL);
-    struct tm *tm = localtime(&t);
-
-    if(!insertNodeM(&memoryList, p, s.shm_segsz, tm,"shared",(int) clave,0,"")){
-    	printf("Not possible to insert in the list of memory blocks\n");
-    }
-    if(tam==0){
-    	printf("Memory shared of key %d in %p\n",(int) clave, p);
-    }
-    
-    return (p);
-    free(p);
+  if (tam)     /*tam distito de 0 indica crear */
+    flags=flags | IPC_CREAT | IPC_EXCL;
+  if (clave==IPC_PRIVATE)  /*no nos vale*/
+    {errno=EINVAL; return NULL;}
+  if ((id=shmget(clave, tam, flags))==-1)
+    return (NULL);
+  if ((p=shmat(id,NULL,0))==(void*) -1){
+    aux=errno;
+    if (tam)
+      shmctl(id,IPC_RMID,NULL);
+      errno=aux;
+      return (NULL);
+  }
+  shmctl (id,IPC_STAT,&s);
+  time_t t= time(NULL);
+  struct tm *tm = localtime(&t);
+  
+  if(!insertNodeM(&memoryList, p, s.shm_segsz, tm,"shared",(int) clave,0,"")){
+    printf("No es posible añadirlo a la lista de bloques shared\n");
+  }
+  if(tam==0){
+    printf("Memoria compartida de clave %d en %p\n",(int) clave, p);
+  }
+  return (p);
+  free(p);
 }

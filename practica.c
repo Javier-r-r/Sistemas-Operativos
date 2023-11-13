@@ -350,82 +350,166 @@ void Cmd_list(char *tr[]){
 }
 
 void Cmd_malloc(char *tr[], tListM memoryList){
-   size_t tam;
-   void *p;
-     
-   if(tr[1]==NULL){		
-   	printf("******List of malloc assigned blocks for process %d\n", getpid());
+
+  if (tr[0] == NULL) {
+   	printf("******Lista de bloques asignados malloc para el proceoso %d\n", getpid());
    	printListMalloc(memoryList);
    	return;
-   }
-   
-   tam=(size_t) strtoul(tr[1],NULL,10);
-   if(tam == 0){		//wrong input
-   	printf("0 byte blocks are not assigned\n");
-   	return;
-   }
-   
-   if((p=(void *) malloc(tam*sizeof(tam))) == NULL ){
-   	perror("Impossible to obtain memory with malloc");
-   } else{
-   	time_t t= time(NULL);
-        struct tm *tm = localtime(&t);
 
-   	if(insertNodeM(&memoryList, p, tam, tm,"malloc",0,0,"")){		//insert node in the list
-   		printf("Assigned %lu bytes in %p\n",(unsigned long)tam,p);
-   	}else{
-   		printf("Not possible to insert in the list of memory blocks\n");
-   	}
-   	
-   }
+  } else if (!strcmp(tr[0], "-free")) {
+
+    tPosML r=NULL;
+    tPosML p;
+    size_t num;
+    	
+    if(tr[1] == NULL){  	
+   	printf("******Lista de bloques asignados malloc para el proceso %d\n", getpid());
+
+   	if(!isEmptyListM(memoryList))
+     	printListMalloc(memoryList); 
+     	return;
+    }
+
+    if(!isEmptyListM(memoryList)){
+    	
+    	if(!isNumberPos(tr[1])){	//Si el número es negativo
+    	  printf("No hay bloque de ese tamaño asignado con malloc\n");
+    	  return;
+    	}
+
+    	num= (size_t) atoi(tr[1]);
+    	
+    	for(p=(memoryList)->next; p != MNULL; p=p->next){	//encuentra el bloque con el tamaño indicado
+    	  if((p->data.size) == num)
+    	    r=p;
+    	}
+    	   	
+    	if(r != NULL){
+    		deleteAtPositionM(r,&memoryList);
+    	} else printf("No hay bloque de ese tamaño asignado con malloc\n");	
+
+    } else  printf("No hay bloque de ese tamaño asignado con malloc\n");
+
+  } else {
+    size_t tam;
+    void *p;
+   
+    tam=(size_t) strtoul(tr[0],NULL,10);
+    if(tam == 0){		//tamaño = 0
+   	  printf("No se asignan bloques de 0 bytes\n");
+   	  return;
+    }
+   
+    if((p=(void *) malloc(tam*sizeof(tam))) == NULL ){
+   	  perror("Imposible obtener memoria con malloc");
+    } else {
+   	  time_t t= time(NULL);
+      struct tm *tm = localtime(&t);
+
+   	  if(insertNodeM(&memoryList, p, tam, tm,"malloc",0,0,"")){		//inserta el nodo en la lista
+   		  printf("Asignados %lu bytes en %p\n",(unsigned long)tam,p);
+   	  } else {
+   		  printf("No es posible añadirlo en la lista de bloques asignados malloc\n");
+   	  }
+    }
+  } 
 }
 
 void Cmd_shared(char *tr[], tListM memoryList) {
-  if (!strcmp(tr[0], "-create"))
-    do_AllocateCreateshared(tr+1, memoryList);
-  else {
+  if (tr[0] == NULL) {
+    printf("******Lista de bloques asignados shared para el proceso %d\n", getpid());
+   	printListShared(memoryList);
+  } else if (!strcmp(tr[0], "-create")) {
+    char message[MAX];
     key_t cl;
-    size_t tam=0;	//indicates avoiding creating new one
+    size_t tam;
     void *p;
    
-    if(tr[1] == NULL){
-   	  printf("******List of shared assigned blocks for process %d\n", getpid());
-   	  printListShared(memoryList);
-    } else {
-      cl=(key_t) strtoul(tr[1],NULL,10);
-		
-      if ((p=ObtenerMemoriaShmget(cl,tam, memoryList))==NULL)
-		    printf ("Impossible to assign shared memory key %lu:%s\n",(unsigned long) cl,strerror(errno));
+    if (tr[1]==NULL || tr[2]==NULL) {
+   	  printf("******Lista de bloques asignados shared para el proceso %d\n", getpid());
+      if(!isEmptyListM(memoryList)) {
+   	    printListShared(memoryList);
+	      return;
+      }
     }
-  }
-}
 
-void Cmd_createShared (char *tr[], tListM memoryList){
-  key_t cl;
-  size_t tam;
-  void *p;
-   
-  if (tr[1]==NULL || tr[2]==NULL) {
-   
-   	printf("******List of shared assigned blocks for process %d\n", getpid());
-   	if(!isEmptyListM(memoryList))
-   		printListShared(memoryList);
-	return;
-  }
-  if(!isNumberPos(tr[1])){		//invalid key
-   	printf("Not valid key\n");
-   	return;
-  }
-  cl=(key_t)  strtoul(tr[1],NULL,10);
-  tam=(size_t) strtoul(tr[2],NULL,10);
-  if (tam==0) {			//key=0
-	  printf ("0 bytes blocks are not assigned\n");
-	  return;
-  }
-  if ((p=ObtenerMemoriaShmget(cl,tam, memoryList))!=NULL)
-		printf ("%lu bytes assigned in %p\n",(unsigned long) tam, p);
-  else
-		printf ("Impossible to assign shared memory key %lu:%s\n",(unsigned long) cl,strerror(errno));
+    if(!isNumberPos(tr[1])){		//la clave es negativa
+		  printf ("Imposible asignar memoria compartida clave %s: %s\n", tr[1],strerror(errno));
+   	  return;
+    }
+
+    cl=(key_t)  strtoul(tr[1],NULL,10);
+    tam=(size_t) strtoul(tr[2],NULL,10);
+
+    if (tam==0) {
+	    printf ("No se asignan bloques de 0 bytes\n");
+	    return;
+    }
+
+    if ((p=ObtenerMemoriaShmget(cl,tam, memoryList))!=NULL)
+		  printf ("Asignados %lu bytes en %p\n",(unsigned long) tam, p);
+    else
+		  printf ("Imposible asignar memoria compartida clave %lu: %s\n",(unsigned long) cl,strerror(errno));
+
+  } else if (!strcmp(tr[0], "-free")) {
+    int num;
+    tPosML p;
+
+    if(tr[1] == NULL){
+   	  printf("******Lista de bloques asignados shared para el proceso %d\n", getpid());
+   	  if(!isEmptyListM(memoryList))
+   		  printListShared(memoryList);
+	    return;
+    }
+    if(!isEmptyListM(memoryList)){
+    	
+    if (!isNumberPos(tr[1]) || !strcmp(tr[1],"0")){		//Clave no valida
+      printf("No hay bloque de esa clave mapeado en el proceso\n");
+    	return;
+    }
+
+    num=atoi(tr[1]);
+    	
+    for(p=(memoryList)->next; p != MNULL; p=p->next){		//Encotrar la clave
+    	if((p->data.key) == num){ // Intenta desvincular la memoria compartida (shmdt) apuntada por el nodo.
+    	  (shmdt(p->data.address) != 0) ? perror("Hubo un error:") : deleteAtPositionM(p,&memoryList); 
+    	  return;
+    	  }
+    	}
+      printf("No hay bloque de esa clave mapeado en el proceso\n");	  	
+
+    } else 
+      printf("No hay bloque de esa clave mapeado en el proceso\n");
+
+  } else if (!strcmp(tr[0], "-delkey")) {
+
+    key_t clave;
+    int id;
+    char *key=tr[1];
+
+    if (key==NULL || (clave=(key_t) strtoul(key,NULL,10))==IPC_PRIVATE){
+      printf ("      delkey necesita clave válida\n");
+      return;
+    }
+    if ((id=shmget(clave,0,0666))==-1){
+      perror ("shmget: imposible obtener memoria compartida");
+      return;
+    }
+    if (shmctl(id,IPC_RMID,NULL)==-1) {
+      perror ("shmctl: imposible eliminar memoria compartida");
+      return;
+    }
+      
+  } else {
+    key_t cl;
+    size_t tam=0;	//Evita crear uno nuevo
+    void *p;
+
+    cl=(key_t) strtoul(tr[0],NULL,10);
+		
+    if ((p=ObtenerMemoriaShmget(cl,tam, memoryList))==NULL)
+		  printf ("Imposible asignar memoria compartida clave %lu: %s\n",(unsigned long) cl,strerror(errno));
+    }
 }
 
 //Imprime información sobre el comando que se le pasa, si no pasa comando muestra por pantalla los comandos disponibles
@@ -511,6 +595,33 @@ void Cmd_help(char *tr[]) {
     printf("\t-create cl tam: asigna (creando) el bloque de memoria compartida de clave cl y tamaño tam\n");
     printf("\t-free cl: desmapea el bloque de memoria compartida de clave cl\n");
     printf("\t-delkey cl: elimina del sistema (sin desmapear) la clave de memoria cl\n");
+  }
+  else if (!strcmp(tr[0], "mmap")) {
+    printf("mmap [-free] fich prm: Mapea el fichero fich con permisos prm\n");
+    printf("\t-free fich: desmapea el fichero fich\n");
+  }
+  else if (!strcmp(tr[0], "read")) {
+    printf("read fiche addr cont: Lee cont bytes desde fich a la dirección addr\n");
+  }
+  else if (!strcmp(tr[0], "write")) {
+    printf("write [-o] fiche addr cont: Escribe cont bytes desde la dirección addr a fich (-o sobreescribe)\n");
+  }
+  else if (!strcmp(tr[0], "memdump")) {
+    printf("memdump addr cont: Vuelca en pantallas los contenidos (cont bytes) de la posición de memoria addr\n");
+  }
+  else if (!strcmp(tr[0], "memfill")) {
+    printf("memfill addr cont byte: Llena la memoria a partir de addr con byte\n");
+  }
+  else if (!strcmp(tr[0], "mem")) {
+    printf("mem [-block|-funcs|-vars|-all|-pmap] ..: Muestra detalles de la memoria del proceso\n");
+    printf("\t-blocks: los bloques de memoria asignados\n");
+    printf("\t-funcs: las direcciones de las funciones\n");
+    printf("\t-vars: las direcciones de las variables\n");
+    printf("\t-all: todo\n");
+    printf("\t-pmap: muestra las salida del comando pmap (o similar)\n");
+  }
+  else if (!strcmp(tr[0], "recurse")) {
+    printf("recurse [n]: Invoca a la función recursiva n veces\n");
   }
   else
     printf("%s no encontrado\n", tr[0]);
