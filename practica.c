@@ -566,6 +566,57 @@ void Cmd_mmap (char *tr[], tListM memoryList) {
   }
 }
 
+void Cmd_read(char *tr[]) {
+  void *p;
+  size_t cont=-1;
+  ssize_t n;
+  if (tr[0]==NULL || tr[1]==NULL){
+	  printf ("Faltan parámetros\n");
+	  return;
+  }
+  p=strToPointer(tr[1]);  /*convertimos de cadena a puntero*/
+  if (tr[2]!=NULL)
+	  cont=(size_t) atoll(tr[2]);
+
+  if ((n=LeerFichero(tr[0],p,cont))==-1)
+	  perror ("Imposible leer fichero");
+  else
+	  printf ("Leídos %lld bytes de %s en %p\n",(long long) n,tr[0],p);
+}
+
+void Cmd_write(char *tr[]) {
+  ssize_t n;
+  size_t cont;
+    
+  if(tr[0] == NULL){
+    printf("Faltan parámetros\n");
+    return;
+  }
+    
+  if(!strcmp(tr[0],"-o")){			//overwriting option
+    if(tr[1] == NULL || tr[2] == NULL || tr[3] == NULL){	//insufficient characters
+      printf("Faltan parámetros\n");
+      return;
+    }
+    cont = strtoul (tr[3],NULL,10);
+
+    if((n=EscribirFichero(tr[1], strToPointer(tr[2]), cont,1)) == -1)	//last parameter=1 for overwriting
+      perror("Hubo un error escribiendo el fichero");
+    else
+     printf ("Escritos %s bytes en %s desde %p\n",tr[3],tr[1],strToPointer(tr[2]));
+  } else {
+    if(tr[0] == NULL || tr[1] == NULL || tr[2] == NULL){	//insufficient characters
+      printf("Faltan parámetros\n");
+    	return;
+    }
+    cont = strtoul (tr[2],NULL,10);
+    if((n=EscribirFichero(tr[0], strToPointer(tr[1]), cont,0)) == -1)	//last  parameter=0 for not overwriting
+      perror("Hubo un error escribiendo el fichero");
+    else
+      printf ("Escritos %s bytes en %s desde %p\n",tr[2],tr[0],strToPointer(tr[1]));
+  }
+}
+
 //Imprime información sobre el comando que se le pasa, si no pasa comando muestra por pantalla los comandos disponibles
 void Cmd_help(char *tr[]) {
   if(tr[0] == NULL){
@@ -704,6 +755,8 @@ struct cmd cmds[]={
   {"stat", Cmd_stat},
   {"deltree", Cmd_deltree},
   {"list", Cmd_list},
+  {"read", Cmd_read},
+  {"write", Cmd_write},
 };
 
 void procesar_comando(char *tr[], tList comandList, tListF fileList, tListM memoryList) {

@@ -49,3 +49,6 @@ char LetraTF (mode_t m);
 bool isNumberPos(char* str);
 void * ObtenerMemoriaShmget (key_t clave, size_t tam, tListM memoryList);
 void * MapearFichero (char * fichero, int protection, tListM memoryList);
+ssize_t LeerFichero (char *f, void *p, size_t cont);
+void * strToPointer(char *tr);
+ssize_t EscribirFichero(char *f, void *p, size_t cont,int overwrite) ;
