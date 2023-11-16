@@ -349,6 +349,8 @@ void Cmd_list(char *tr[]){
   }    
 }
 
+
+//Asigna memoria con la función malloc
 void Cmd_malloc(char *tr[], tListM memoryList){
 
   if (tr[0] == NULL) {
@@ -385,7 +387,7 @@ void Cmd_malloc(char *tr[], tListM memoryList){
     	}
     	   	
     	if(r != NULL){
-    		deleteAtPositionM(r,&memoryList);
+    		deleteAtPositionM(r,&memoryList);		//Libera memoria además de eliminar de la lista
     	} else printf("No hay bloque de ese tamaño asignado con malloc\n");	
 
     } else  printf("No hay bloque de ese tamaño asignado con malloc\n");
@@ -400,7 +402,7 @@ void Cmd_malloc(char *tr[], tListM memoryList){
    	  return;
     }
    
-    if((p=(void *) malloc(tam*sizeof(tam))) == NULL ){
+    if((p=(void *) malloc(tam*sizeof(tam))) == NULL ){		//Asigna la memoria
    	  perror("Imposible obtener memoria con malloc");
     } else {
    	  time_t t= time(NULL);
@@ -410,11 +412,13 @@ void Cmd_malloc(char *tr[], tListM memoryList){
    		  printf("Asignados %lu bytes en %p\n",(unsigned long)tam,p);
    	  } else {
    		  printf("No es posible añadirlo en la lista de bloques asignados malloc\n");
+				free(p);
    	  }
     }
   } 
 }
 
+//Asigna memoria compartida
 void Cmd_shared(char *tr[], tListM memoryList) {
   if (tr[0] == NULL) {
     printf("******Lista de bloques asignados shared para el proceso %d\n", getpid());
@@ -447,8 +451,10 @@ void Cmd_shared(char *tr[], tListM memoryList) {
 
     if ((p=ObtenerMemoriaShmget(cl,tam, memoryList))!=NULL)
 		  printf ("Asignados %lu bytes en %p\n",(unsigned long) tam, p);
-    else
+    else {
 		  printf ("Imposible asignar memoria compartida clave %lu: %s\n",(unsigned long) cl,strerror(errno));
+			free(p);
+		} 
 
   } else if (!strcmp(tr[0], "-free")) {
     int num;
@@ -511,6 +517,7 @@ void Cmd_shared(char *tr[], tListM memoryList) {
     }
 }
 
+//Mapea un fichero en memoria
 void Cmd_mmap (char *tr[], tListM memoryList) {
 
   if (tr[0]==NULL){ 
@@ -566,6 +573,7 @@ void Cmd_mmap (char *tr[], tListM memoryList) {
   }
 }
 
+//Lee cont bytes del fichero en una dirección de memoria
 void Cmd_read(char *tr[]) {
   void *p;
   size_t cont=-1;
@@ -584,6 +592,7 @@ void Cmd_read(char *tr[]) {
 	  printf ("Leídos %lld bytes de %s en %p\n",(long long) n,tr[0],p);
 }
 
+//Escribe cont bytes en un fichero con una dirección de memoria
 void Cmd_write(char *tr[]) {
   ssize_t n;
   size_t cont;
@@ -593,24 +602,24 @@ void Cmd_write(char *tr[]) {
     return;
   }
     
-  if(!strcmp(tr[0],"-o")){			//overwriting option
-    if(tr[1] == NULL || tr[2] == NULL || tr[3] == NULL){	//insufficient characters
+  if(!strcmp(tr[0],"-o")){			
+    if(tr[1] == NULL || tr[2] == NULL || tr[3] == NULL){	
       printf("Faltan parámetros\n");
       return;
     }
     cont = strtoul (tr[3],NULL,10);
 
-    if((n=EscribirFichero(tr[1], strToPointer(tr[2]), cont,1)) == -1)	//last parameter=1 for overwriting
+    if((n=EscribirFichero(tr[1], strToPointer(tr[2]), cont,1)) == -1)	//Último parámetro a 1 para sobreescribir
       perror("Hubo un error escribiendo el fichero");
     else
      printf ("Escritos %s bytes en %s desde %p\n",tr[3],tr[1],strToPointer(tr[2]));
   } else {
-    if(tr[0] == NULL || tr[1] == NULL || tr[2] == NULL){	//insufficient characters
+    if(tr[0] == NULL || tr[1] == NULL || tr[2] == NULL){	
       printf("Faltan parámetros\n");
     	return;
     }
-    cont = strtoul (tr[2],NULL,10);
-    if((n=EscribirFichero(tr[0], strToPointer(tr[1]), cont,0)) == -1)	//last  parameter=0 for not overwriting
+    cont = strtoul (tr[2],NULL,10);		//Devuelve un valor de tipo unsigned long (no hay valores negativos)
+    if((n=EscribirFichero(tr[0], strToPointer(tr[1]), cont,0)) == -1)
       perror("Hubo un error escribiendo el fichero");
     else
       printf ("Escritos %s bytes en %s desde %p\n",tr[2],tr[0],strToPointer(tr[1]));
@@ -732,7 +741,7 @@ void Cmd_help(char *tr[]) {
     printf("%s no encontrado\n", tr[0]);
 }
 
-void Cmd_exit(tListF fileList, tList commandList, tListM memoryList){
+void Cmd_exit(tListF fileList, tList commandList, tListM memoryList){	//Libera la memoria y luego finaliza el programa
   freeList(&commandList);
   freeListF(&fileList);
   freeListM(&memoryList);
@@ -760,7 +769,7 @@ struct cmd cmds[]={
 };
 
 void procesar_comando(char *tr[], tList comandList, tListF fileList, tListM memoryList) {
-  int i;
+
   if (tr[0] == NULL)
     return;
   if (!strcmp("comand", tr[0]))
@@ -784,6 +793,7 @@ void procesar_comando(char *tr[], tList comandList, tListF fileList, tListM memo
   else if (!strcmp("mmap", tr[0]))
     Cmd_mmap(tr+1, memoryList);
   else {
+    int i;
     for (i=0; cmds[i].nombre != NULL; i++){
       if (!strcmp(cmds[i].nombre, tr[0])) {
         (cmds[i].pfuncion) (tr+1);
