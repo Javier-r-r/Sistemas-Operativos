@@ -331,23 +331,23 @@ void * strToPointer(char *tr){		//converts a string into a pointer
     return p;
 }
 
-ssize_t LeerFichero (char *f, void *p, size_t cont){
+ssize_t LeerFichero (char *f, void *p, size_t cont){    
   struct stat s;
   ssize_t  n;  
   int df,aux;
 
-  if (stat (f,&s)==-1 || (df=open(f,O_RDONLY))==-1)
+  if (stat (f,&s)==-1 || (df=open(f,O_RDONLY))==-1)   //Recupera los datos del fichero y lo abre
 	  return -1;     
   if (cont==-1)   /* si pasamos -1 como bytes a leer lo leemos entero*/
 	  cont=s.st_size;
-  if ((n=read(df,p,cont))==-1){
+  if ((n=read(df,p,cont))==-1){     //Lee los cont bytes del fichero con descriptor df y almacena los datos leídos p
 	  aux=errno;
 	  close(df);
 	  errno=aux;
 	  return -1;
   }
   close (df);
-  return n;
+  return n;     //Devuelve el número de bytes leídos
 }
 
 ssize_t EscribirFichero(char *f, void *p, size_t cont,int overwrite) {
@@ -357,15 +357,15 @@ ssize_t EscribirFichero(char *f, void *p, size_t cont,int overwrite) {
   if (overwrite)
 	  flags=O_CREAT | O_WRONLY | O_TRUNC;
    
-  if ((df=open(f,flags,0777))==-1)
+  if ((df=open(f,flags,0777))==-1)    //Abre el archivo
 	  return -1;
 
-  if ((n=write(df,p,cont))==-1){
+  if ((n=write(df,p,cont))==-1){      //Escribe con bytes desde la memoria apuntada por p en el archivo con descriptor df
 	  aux=errno;
 	  close(df);
 	  errno=aux;
 	  return -1;
   }
   close (df);
-  return n;
+  return n;       //Devuelve el número de bytes escritos
 }
