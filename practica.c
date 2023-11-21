@@ -626,6 +626,65 @@ void Cmd_write(char *tr[]) {
   }
 }
 
+//Vuelca el contenido de la memoria a la pantalla
+void Cmd_memdump(char *tr[]) {
+  unsigned char *addr;
+  int cont;
+  char elem;
+  int i,j;
+
+  if(tr[0]!=NULL){
+    addr = cadtop(tr[0]);
+    
+    if(tr[1]!=NULL)
+      cont = atoi(tr[1]);
+    
+    printf("Volcado de %d bytes en la dirección %p\n", cont, addr);
+
+    for(i=0; i<(cont/25); i++) {
+      for(j=0; j < 25; i++) {
+        if(j != 24) {
+          elem = addr[25*i+j];
+          if(elem >= 0x20 && elem < 0x7f)
+            printf("  %c", elem);
+          else
+            printf("  ");
+        }
+        else 
+          printf("\n");
+      }
+
+      for(j=0; j < 25; i++) {
+        if(j != 24)
+          printf("%02x", addr[25*i+j]);
+      }
+      printf("\n");
+    }
+
+    if((cont%25)==0) {
+      for(j=0; j < (cont%25); j++) {
+        if(j != 24) {
+          elem = addr[i];
+          if(elem >= 0x20 && elem < 0x7f)
+            printf("  %c", elem);
+          else 
+            printf("  ");
+        }
+        else
+          printf("\n");
+      }
+      printf("\n");
+
+      for(j=0; j < (cont%25); j++) {
+        if(j != 24)
+          printf("%02x", addr[i]);
+      }
+      printf("\n");
+    }
+  }
+}
+
+
 //Imprime información sobre el comando que se le pasa, si no pasa comando muestra por pantalla los comandos disponibles
 void Cmd_help(char *tr[]) {
   if(tr[0] == NULL){
@@ -766,6 +825,7 @@ struct cmd cmds[]={
   {"list", Cmd_list},
   {"read", Cmd_read},
   {"write", Cmd_write},
+  {"memdump", Cmd_memdump},
 };
 
 void procesar_comando(char *tr[], tList comandList, tListF fileList, tListM memoryList) {
