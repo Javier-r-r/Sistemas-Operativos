@@ -737,6 +737,15 @@ void Cmd_mem(char *tr[], tListM memoryList) {
   }
 }
 
+//Invoca a la funcion recursiva n veces
+void Cmd_recursiva(char *tr[]) {
+    if(tr[1]!=NULL){
+        long n = strtol(tr[1], NULL, 10);
+        int num=(int)n;
+        Recursiva(num);
+    }
+}
+
 //Imprime información sobre el comando que se le pasa, si no pasa comando muestra por pantalla los comandos disponibles
 void Cmd_help(char *tr[]) {
   if(tr[0] == NULL){
@@ -845,8 +854,8 @@ void Cmd_help(char *tr[]) {
     printf("\t-all: todo\n");
     printf("\t-pmap: muestra las salida del comando pmap (o similar)\n");
   }
-  else if (!strcmp(tr[0], "recurse")) {
-    printf("recurse [n]: Invoca a la función recursiva n veces\n");
+  else if (!strcmp(tr[0], "recursiva")) {
+    printf("recursiva [n]: Invoca a la función recursiva n veces\n");
   }
   else
     printf("%s no encontrado\n", tr[0]);
@@ -879,6 +888,7 @@ struct cmd cmds[]={
   {"write", Cmd_write},
   {"memdump", Cmd_memdump},
   {"memfill", Cmd_memfill},
+  {"recursiva", Cmd_recursiva},
 };
 
 void procesar_comando(char *tr[], tList comandList, tListF fileList, tListM memoryList) {

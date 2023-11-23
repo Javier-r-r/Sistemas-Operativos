@@ -3,6 +3,7 @@
 
 #define MAX 1024
 #define _GNU_SOURCE
+#define TAMANO 2048
 
 #include <stdio.h>
 #include <string.h>
@@ -55,3 +56,4 @@ ssize_t EscribirFichero(char *f, void *p, size_t cont,int overwrite) ;
 void LlenarMemoria (void *p, size_t cont, unsigned char byte);
 void *cadtop(char* cadena);
 void mem_pmap();
+void Recursiva (int n);

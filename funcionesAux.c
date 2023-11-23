@@ -413,3 +413,14 @@ void mem_pmap (void)
     }
     waitpid (pid,NULL,0);
 }
+
+void Recursiva (int n)
+{
+  char automatico[TAMANO];
+  static char estatico[TAMANO];
+
+  printf ("parametro:%3d(%p) array %p, arr estatico %p\n",n,&n,automatico, estatico);
+
+  if (n>0)
+    Recursiva(n-1);
+}
