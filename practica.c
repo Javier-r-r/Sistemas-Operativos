@@ -629,7 +629,7 @@ void Cmd_write(char *tr[]) {
 //Vuelca el contenido de la memoria a la pantalla
 void Cmd_memdump(char *tr[]) {
   unsigned char *addr;
-  int cont;
+  int cont=25;
   char elem;
   int i,j;
 
@@ -684,6 +684,24 @@ void Cmd_memdump(char *tr[]) {
   }
 }
 
+//Llena la memoria a partir de addr con byte
+void Cmd_memfill(char *tr[]) {
+  void *p; 
+  int cont;
+  unsigned char byte;
+
+  if(tr[0]) {
+    p = cadtop(tr[0]);
+    if(tr[1]!=NULL && tr[2]==NULL)
+      cont = atoi(tr[1]);
+    else if(tr[1] && tr[2]) {
+      cont = atoi(tr[1]);
+      byte = atoi(tr[2]);
+    }
+    printf("Llenando %d bytes de memoria con %c(%02x) en %p\n", cont, byte, byte, p);
+    LlenarMemoria(p, cont, byte); 
+  }
+}
 
 //Imprime información sobre el comando que se le pasa, si no pasa comando muestra por pantalla los comandos disponibles
 void Cmd_help(char *tr[]) {
@@ -826,6 +844,7 @@ struct cmd cmds[]={
   {"read", Cmd_read},
   {"write", Cmd_write},
   {"memdump", Cmd_memdump},
+  {"memfill", Cmd_memfill},
 };
 
 void procesar_comando(char *tr[], tList comandList, tListF fileList, tListM memoryList) {

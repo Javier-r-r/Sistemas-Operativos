@@ -52,3 +52,5 @@ void * MapearFichero (char * fichero, int protection, tListM memoryList);
 ssize_t LeerFichero (char *f, void *p, size_t cont);
 void * strToPointer(char *tr);
 ssize_t EscribirFichero(char *f, void *p, size_t cont,int overwrite) ;
+void LlenarMemoria (void *p, size_t cont, unsigned char byte);
+void *cadtop(char* cadena);

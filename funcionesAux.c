@@ -369,3 +369,17 @@ ssize_t EscribirFichero(char *f, void *p, size_t cont,int overwrite) {
   close (df);
   return n;       //Devuelve el número de bytes escritos
 }
+
+void LlenarMemoria (void *p, size_t cont, unsigned char byte)
+{
+  unsigned char *arr=(unsigned char *) p;
+  size_t i;
+
+  for (i=0; i<cont;i++)
+		arr[i]=byte;
+}
+
+void *cadtop(char* cadena){
+    void *p = (void*) strtoul(cadena, NULL, 16);
+    return p;
+}
