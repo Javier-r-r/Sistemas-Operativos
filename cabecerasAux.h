@@ -54,3 +54,7 @@ void * strToPointer(char *tr);
 ssize_t EscribirFichero(char *f, void *p, size_t cont,int overwrite) ;
 void LlenarMemoria (void *p, size_t cont, unsigned char byte);
 void *cadtop(char* cadena);
+void mem_funcs();
+void mem_vars();
+void printBlockList(tListM L);
+void mem_pmap();

@@ -350,6 +350,8 @@ void Cmd_list(char *tr[]){
 }
 
 
+//PRÁCTICA 2
+
 //Asigna memoria con la función malloc
 void Cmd_malloc(char *tr[], tListM memoryList){
 
@@ -700,6 +702,24 @@ void Cmd_memfill(char *tr[]) {
     }
     printf("Llenando %d bytes de memoria con %c(%02x) en %p\n", cont, byte, byte, p);
     LlenarMemoria(p, cont, byte); 
+  }
+}
+
+//Muestra detalles de la memoria del proceso
+void Cmd_mem(char *tr[], tListM memoryList) {
+
+  if((tr[0]==NULL) || (strcmp(tr[0],"-all")==0)) {
+    mem_funcs();
+    mem_vars();
+    printBlockList(memoryList);
+  } else if(strcmp(tr[0], "-blocks")==0) {
+    printBlockList(memoryList);
+  } else if(strcmp(tr[0], "-funcs")==0) {
+    mem_funcs();
+  } else if(strcmp(tr[0], "-vars")==0) {
+    mem_pmap();
+  } else {
+    printf("Opcion %s no contemplada\n", tr[0]);
   }
 }
 
