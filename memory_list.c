@@ -196,5 +196,16 @@ void freeListM(tListM *L){
 }
 
 void printBlockList(tListM L) {
+    tPosML p = L;
+    printf("******Lista de bloques asignados para el proceso %d\n", getpid());
+    while(p!=NULL){
+        if(strcmp(p->type, "malloc")==0)
+            printf("%17p %17d %s %s\n", p->addr, p->size, p->time, p->type);
+        else if(strcmp(p->type, "shared")==0)
+            printf("%17p %17d %s %s (key %d)\n", p->addr, p->size, p->time, p->type, p->otherInt);
+        else if(strcmp(p->type, "mmap")==0)
+            printf("%17p %17d %s %s (descriptor %d)\n", p->addr, p->size, p->time, p->other, p->otherInt);
+        p=p->next;
+    }
     
 }

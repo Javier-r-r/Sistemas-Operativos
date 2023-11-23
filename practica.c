@@ -634,7 +634,6 @@ void Cmd_memdump(char *tr[]) {
   int cont=25;
   char elem;
   int i,j;
-
   if(tr[0]!=NULL){
     addr = cadtop(tr[0]);
     
@@ -710,11 +709,17 @@ void mem_funcs() {
   printf("Funciones librería:\t %p, %p, %p\n", strcmp, sscanf, printf);
 }
 
-void mem_vars();
+int gl1=1,gl2=2,gl3=3;
+void mem_vars(){
+  static int st1=4,st2=5,st3=6;
+  int loc1=10,loc2=11,loc3=12;
+  printf("Variables locales\t %p, %p, %p\n", &loc1, &loc2, &loc3);
+  printf("Variables globales\t %p, %p, %p\n", &gl1, &gl2, &gl3);
+  printf("Variables estáticas\t %p, %p, %p\n", &st1, &st2, &st3);
+}
 
 //Muestra detalles de la memoria del proceso
 void Cmd_mem(char *tr[], tListM memoryList) {
-
   if((tr[0]==NULL) || (strcmp(tr[0],"-all")==0)) {
     mem_funcs();
     mem_vars();
@@ -724,11 +729,12 @@ void Cmd_mem(char *tr[], tListM memoryList) {
   } else if(strcmp(tr[0], "-funcs")==0) {
     mem_funcs();
   } else if(strcmp(tr[0], "-vars")==0) {
+    mem_vars();
+  } else if(strcmp(tr[0], "-pmap")==0) {
     mem_pmap();
   } else {
     printf("Opcion %s no contemplada\n", tr[0]);
   }
-
 }
 
 //Imprime información sobre el comando que se le pasa, si no pasa comando muestra por pantalla los comandos disponibles
@@ -899,6 +905,8 @@ void procesar_comando(char *tr[], tList comandList, tListF fileList, tListM memo
     Cmd_shared(tr+1, memoryList);
   else if (!strcmp("mmap", tr[0]))
     Cmd_mmap(tr+1, memoryList);
+  else if (!strcmp("mem", tr[0]))
+    Cmd_mem(tr+1, memoryList);
   else {
     int i;
     for (i=0; cmds[i].nombre != NULL; i++){
