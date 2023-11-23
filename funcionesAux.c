@@ -379,12 +379,9 @@ void LlenarMemoria (void *p, size_t cont, unsigned char byte)
 		arr[i]=byte;
 }
 
-void *cadtop(char* cadena){
+void *cadtop(char* cadena) {
     void *p = (void*) strtoul(cadena, NULL, 16);
     return p;
 }
 
-void mem_funcs();
-void mem_vars();
-void printBlockList(tListM L);
 void mem_pmap();

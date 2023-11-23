@@ -705,6 +705,13 @@ void Cmd_memfill(char *tr[]) {
   }
 }
 
+void mem_funcs() {
+  printf("Funciones programa:\t %p, %p, %p\n", mem_funcs, main, Cmd_mem);
+  printf("Funciones librería:\t %p, %p, %p\n", strcmp, sscanf, printf);
+}
+
+void mem_vars();
+
 //Muestra detalles de la memoria del proceso
 void Cmd_mem(char *tr[], tListM memoryList) {
 
@@ -721,6 +728,7 @@ void Cmd_mem(char *tr[], tListM memoryList) {
   } else {
     printf("Opcion %s no contemplada\n", tr[0]);
   }
+
 }
 
 //Imprime información sobre el comando que se le pasa, si no pasa comando muestra por pantalla los comandos disponibles

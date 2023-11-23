@@ -53,5 +53,6 @@ void printListMmap(tListM L);
 
 void freeListM(tListM *L);
 
+void printBlockList(tListM L);
 
 #endif 
