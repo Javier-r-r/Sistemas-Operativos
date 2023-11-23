@@ -384,7 +384,7 @@ void *cadtop(char* cadena) {
     return p;
 }
 
-void Do_pmap (void)
+void mem_pmap (void)
 { pid_t pid;      
     char elpid[32];
     char *argv[4]={"pmap",elpid,NULL};

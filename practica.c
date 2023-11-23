@@ -705,8 +705,8 @@ void Cmd_memfill(char *tr[]) {
 }
 
 void mem_funcs() {
-  printf("Funciones programa:\t %p, %p, %p\n", mem_funcs, main, Cmd_mem);
-  printf("Funciones librería:\t %p, %p, %p\n", strcmp, sscanf, printf);
+  printf("Funciones programa\t %p, %p, %p\n", mem_funcs, Cmd_authors, Cmd_date);
+  printf("Funciones librería\t %p, %p, %p\n", strcmp, sscanf, printf);
 }
 
 int gl1=1,gl2=2,gl3=3;
@@ -721,11 +721,11 @@ void mem_vars(){
 //Muestra detalles de la memoria del proceso
 void Cmd_mem(char *tr[], tListM memoryList) {
   if((tr[0]==NULL) || (strcmp(tr[0],"-all")==0)) {
-    mem_funcs();
     mem_vars();
-    printBlockList(memoryList);
+    mem_funcs();
+    printListM(memoryList);
   } else if(strcmp(tr[0], "-blocks")==0) {
-    printBlockList(memoryList);
+    printListM(memoryList);
   } else if(strcmp(tr[0], "-funcs")==0) {
     mem_funcs();
   } else if(strcmp(tr[0], "-vars")==0) {
