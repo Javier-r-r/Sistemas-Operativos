@@ -742,8 +742,8 @@ void Cmd_mem(char *tr[], tListM memoryList) {
 
 //Invoca a la funcion recursiva n veces
 void Cmd_recursiva(char *tr[]) {
-    if(tr[1]!=NULL){
-        long n = strtol(tr[1], NULL, 10);
+    if(tr[0]!=NULL){
+        long n = strtol(tr[0], NULL, 10);
         int num=(int)n;
         Recursiva(num);
     }
