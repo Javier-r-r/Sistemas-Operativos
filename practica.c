@@ -706,7 +706,7 @@ void Cmd_memfill(char *tr[]) {
   int cont;
   unsigned char byte;
 
-  if(tr[0]) {
+  if(tr[0] != NULL) {
     p = cadtop(tr[0]);
     if (tr[1] == NULL)
       cont = 128;	
