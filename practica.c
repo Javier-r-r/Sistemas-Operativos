@@ -421,14 +421,14 @@ void Cmd_malloc(char *tr[], tListM memoryList){
 }
 
 //Asigna memoria compartida
-void Cmd_shared(char *tr[], tListM memoryList) {
-  if (tr[0] == NULL) {
+void Cmd_shared(char *tr[], tListM memoryList) {          //Probar con dos terminales diferentes. Hacer un read y en el otro terminal un memdump
+  if (tr[0] == NULL) { 
     printf("******Lista de bloques asignados shared para el proceso %d\n", getpid());
     if(!isEmptyListM(memoryList)) {
    	  printListShared(memoryList);
 	    return;
     }
-  } else if (!strcmp(tr[0], "-create")) {
+  } else if (!strcmp(tr[0], "-create")) {   //Del fichero de ayuda
     key_t cl;
     size_t tam;
     void *p;
@@ -458,7 +458,6 @@ void Cmd_shared(char *tr[], tListM memoryList) {
 		  printf ("Asignados %lu bytes en %p\n",(unsigned long) tam, p);
     else {
 		  printf ("Imposible asignar memoria compartida clave %lu: %s\n",(unsigned long) cl,strerror(errno));
-			free(p);
 		} 
 
   } else if (!strcmp(tr[0], "-free")) {
@@ -727,8 +726,8 @@ void mem_funcs() {
   printf("Funciones librería\t %p, %p, %p\n", strcmp, sscanf, printf);
 }
 
+int gl1=1,gl2=2,gl3=3;
 void mem_vars(){
-  int gl1=1,gl2=2,gl3=3;
   static int st1=4,st2=5,st3=6;
   int loc1=10,loc2=11,loc3=12;
   printf("Variables locales\t %p, %p, %p\n", &loc1, &loc2, &loc3);
@@ -756,12 +755,12 @@ void Cmd_mem(char *tr[], tListM memoryList) {
 }
 
 //Invoca a la funcion recursiva n veces
-void Cmd_recursiva(char *tr[]) {
-    if(tr[0]!=NULL){
-        long n = strtol(tr[0], NULL, 10);
-        int num=(int)n;
-        Recursiva(num);
-    }
+void Cmd_recursiva(char *tr[]) {        //Fijarse porque salen esas direcciones, lo va a preguntar en la defensa
+  if(tr[0]!=NULL){
+    long n = strtol(tr[0], NULL, 10);
+    int num=(int)n;
+    Recursiva(num);
+  }
 }
 
 //Imprime información sobre el comando que se le pasa, si no pasa comando muestra por pantalla los comandos disponibles

@@ -128,131 +128,131 @@ void printStats(char *tr, struct statParams *pr){
 }
 
 bool isDirectory(char * dir) {
-    struct stat fs;
+  struct stat fs;
 
-    if(lstat(dir, &fs)==-1){
-        return 0;
-    }
-    return S_ISDIR(fs.st_mode);
+  if(lstat(dir, &fs)==-1){
+    return 0;
+  }
+  return S_ISDIR(fs.st_mode);
 }
 
 void auxPrintFiles(char *dir, char *name,struct statParams *pr) {
-    struct stat fs;
-    char aux[MAX];
+  struct stat fs;
+  char aux[MAX];
     
-    snprintf(aux, MAX, "%s/%s", dir, name); //concatenate directory and inner file or directory
+  snprintf(aux, MAX, "%s/%s", dir, name); //concatenate directory and inner file or directory
 
-    if(!lstat(aux, &fs)){           
-        if(pr->lon) printStats(aux,pr); //if long option is included, we print stats in that format
-        else printf("%10ld  %s\n",fs.st_size, name);
-    }else printf("%s\n", strerror(errno));             
+  if(!lstat(aux, &fs)){           
+    if(pr->lon) printStats(aux,pr); //if long option is included, we print stats in that format
+    else printf("%10ld  %s\n",fs.st_size, name);
+  }else printf("%s\n", strerror(errno));             
 }
 
 void printFiles(char * dir, struct statParams *pr) {
 
-    DIR *direct;
-    struct dirent *d; 
+  DIR *direct;
+  struct dirent *d; 
     
-    if((direct=opendir(dir)) != NULL){
+  if((direct=opendir(dir)) != NULL){
       
-        while ((d = readdir (direct)) != NULL){ //iterate through directory        
-           if(!(pr->hid)){ 
+    while ((d = readdir (direct)) != NULL){ //iterate through directory        
+      if(!(pr->hid)){ 
            
-             if(!strcmp(d->d_name, "..") || !strcmp(d->d_name, ".")) continue; // skip "." and ".."
-             if(!(pr->hid) && d->d_name[0]=='.') continue; //in case there is not -hid
+        if(!strcmp(d->d_name, "..") || !strcmp(d->d_name, ".")) continue; // skip "." and ".."
+        if(!(pr->hid) && d->d_name[0]=='.') continue; //in case there is not -hid
            
-             auxPrintFiles(dir,d->d_name,pr);
-           }else auxPrintFiles(dir,d->d_name,pr);
-       }
-        closedir(direct);
-   }   
+        auxPrintFiles(dir,d->d_name,pr);
+      }else auxPrintFiles(dir,d->d_name,pr);
+    }
+    closedir(direct);
+  }   
 }
 
 void traverseOut(char *tr,struct statParams *pr, char * original) { //auxiliary function for -recb
 
-    DIR *direct;
-    struct dirent *d;
-    char aux[MAX];
+  DIR *direct;
+  struct dirent *d;
+  char aux[MAX];
 
-    if((direct=opendir(tr)) != NULL){
+  if((direct=opendir(tr)) != NULL){
     
-        while ((d = readdir (direct)) != NULL){ //iterate through directory               
+    while ((d = readdir (direct)) != NULL){ //iterate through directory               
             
-            if(!strcmp(d->d_name, "..") || !strcmp(d->d_name, "."))continue;// skip "." and ".."
+    if(!strcmp(d->d_name, "..") || !strcmp(d->d_name, "."))continue;// skip "." and ".."
             
-            snprintf(aux, MAX, "%s/%s", tr, d->d_name); //concatenate directory and inner file or directory
+      snprintf(aux, MAX, "%s/%s", tr, d->d_name); //concatenate directory and inner file or directory
 
-            if(isDirectory(aux)){
-                  traverseOut(aux,pr,original);
-                  if(pr->hid || d->d_name[0]!='.'){ //print if the file is not hidden and hid is input
-                      printf("************%s\n", aux);
-                      printFiles(aux,pr);
-                   }               
-            }
-        }
-        closedir(direct);
-    }else{
-      fprintf(stderr, "****error al acceder a %s: ", tr);
-      perror("");
+      if(isDirectory(aux)){
+        traverseOut(aux,pr,original);
+        if(pr->hid || d->d_name[0]!='.'){ //print if the file is not hidden and hid is input
+          printf("************%s\n", aux);
+          printFiles(aux,pr);
+        }               
+      }
     }
-    if(!strcmp(tr, original)){ //print stats of first directory        
-        printf("************%s\n", original);
-        printFiles(original,pr);
-    }
+    closedir(direct);
+  }else{
+    fprintf(stderr, "****error al acceder a %s: ", tr);
+    perror("");
+  }
+  if(!strcmp(tr, original)){ //print stats of first directory        
+    printf("************%s\n", original);
+    printFiles(original,pr);
+  }
 }
 
 void traverseIn(char *tr,struct statParams *pr) { //auxiliary function for -reca
  
-    DIR *direct;
-    struct dirent *d;
-    char aux[MAX];
+  DIR *direct;
+  struct dirent *d;
+  char aux[MAX];
     
-    if((direct=opendir(tr)) != NULL){
+  if((direct=opendir(tr)) != NULL){
    
-          printf("************%s\n", tr);
-          printFiles(tr,pr);
-          
-        while ((d = readdir (direct)) != NULL){ //iterate through directory
+    printf("************%s\n", tr);
+    printFiles(tr,pr);
+    
+    while ((d = readdir (direct)) != NULL){ //iterate through directory
 
-            if(!(pr->hid) && d->d_name[0]=='.') continue; //in case there is not -hid
-            if(!strcmp(d->d_name, "..") || !strcmp(d->d_name, ".")) continue;// skip "." and ".."
-            
-            snprintf(aux, MAX, "%s/%s", tr, d->d_name); //concatenate directory and inner file or directory
+    if(!(pr->hid) && d->d_name[0]=='.') continue; //in case there is not -hid
+    if(!strcmp(d->d_name, "..") || !strcmp(d->d_name, ".")) continue;// skip "." and ".."
+    
+      snprintf(aux, MAX, "%s/%s", tr, d->d_name); //concatenate directory and inner file or directory
 
-            if(isDirectory(aux))
-                traverseIn(aux,pr);                             
-        }
-        closedir(direct);
+      if(isDirectory(aux))
+        traverseIn(aux,pr);                             
     }
+    closedir(direct);
+  }
 }
 
 void printLstats(char *tr, struct statParams *pr) {
-    struct stat fs;      
-    //lstad instead of stat because if path is a symbolic link,then the link itslef is stat-ed, not the file
-    if(lstat(tr,&fs)){ 
-      fprintf(stderr, "****error al acceder a %s: ", tr);
-      perror("");
-      return;
-    }
-    int total= pr->lon + pr->lnk + pr->acc + pr->hid + pr->reca + pr->recb;
+  struct stat fs;      
+  //lstad instead of stat because if path is a symbolic link,then the link itslef is stat-ed, not the file
+  if(lstat(tr,&fs)){ 
+    fprintf(stderr, "****error al acceder a %s: ", tr);
+    perror("");
+    return;
+  }
+  int total= pr->lon + pr->lnk + pr->acc + pr->hid + pr->reca + pr->recb;
     
-    if(total==0){
-        if(S_ISDIR(fs.st_mode)){
-           printf("************%s\n", tr);
-           printFiles(tr,pr);
-        }else printf("%10ld  %s\n",fs.st_size, lastDir(tr));       
-    }else if(!(S_ISDIR(fs.st_mode))){
-        printStats(tr,pr);
-    }else{
+  if(total==0){
+    if(S_ISDIR(fs.st_mode)){
+      printf("************%s\n", tr);
+      printFiles(tr,pr);
+    }else printf("%10ld  %s\n",fs.st_size, lastDir(tr));       
+  }else if(!(S_ISDIR(fs.st_mode))){
+    printStats(tr,pr);
+  }else{
              
-        if((pr->recb) == 1){ //-recb option (major priority)
-            char copy[MAX];
-            strcpy(copy,tr);
-            traverseOut(tr,pr,copy);                    
-        }else if(pr->reca && !pr->recb){ //-reca option
-            traverseIn(tr,pr);
-        }else printFiles(tr,pr); 
-    }
+    if((pr->recb) == 1){ //-recb option (major priority)
+      char copy[MAX];
+      strcpy(copy,tr);
+      traverseOut(tr,pr,copy);                    
+    }else if(pr->reca && !pr->recb){ //-reca option
+      traverseIn(tr,pr);
+    }else printFiles(tr,pr); 
+  }
 }
 
 bool isNumberPos(char* str){
@@ -370,32 +370,36 @@ ssize_t EscribirFichero(char *f, void *p, size_t cont,int overwrite) {    //Del 
   return n;       //Devuelve el número de bytes escritos
 }
 
-void showMemory( void *addr, size_t len) {  
+void showMemory(void *addr, size_t len) {
     size_t i;
-    size_t j;    
-    unsigned char *pc = (unsigned char *)addr; 
+    size_t j;
+    unsigned char *pc = (unsigned char *)addr;
 
-    for(i=1; i<=len ; i++){
-        if(pc[i-1] != '\0')  printf(" %c ",pc[i-1]);	//print characer
-        else   printf("   ");				//find null ,then no character
-        
-        if(i%25 == 0){					//line size 25
+    for (i = 0; i <= len; i++) {
+        if (pc[i - 1] != '\0')
+            printf(" %c ", pc[i - 1]);  // Imprimir el carácter
+        else
+            printf("   ");              // Si es nulo, no imprimir ningún carácter
+
+        if (i % 25 == 0) {               // Cambiar de línea cada 25 caracteres
             printf("\n");
-            for(j=i-25; j<i; j++){			//print hex code for character
+            for (j = i - 25; j < i; j++) {  // Imprimir el código hexadecimal para cada carácter
                 printf("%.2x ", pc[j]);
             }
             printf("\n");
         }
     }
+
     printf("\n");
-    if((len%25) != 0){					//print last line if is not multiple of 25
-        for(size_t k=len-(len%25)+1; k<=len; k++){
-                printf("%.2x ", pc[k-1]);
+
+    if ((len % 25) != 0) {  // Imprimir la última línea si no es un múltiplo de 25
+        for (size_t k = len - (len % 25) + 1; k <= len; k++) {
+            printf("%.2x ", pc[k - 1]);
         }
         printf("\n");
     }
-
 }
+
 
 void LlenarMemoria (void *p, size_t cont, unsigned char byte) {           //Del fichero de ayuda
   unsigned char *arr=(unsigned char *) p;
