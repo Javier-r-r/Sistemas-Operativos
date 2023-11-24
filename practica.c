@@ -641,64 +641,6 @@ void Cmd_memdump(char *tr[]){
     printf("Volcando %zu bytes desde la dirección %p\n",c,strToPointer(tr[0]));
     showMemory(strToPointer(tr[0]),c);
 }
-/* No funciona esta funcion
-//Vuelca el contenido de la memoria a la pantalla
-void Cmd_memdump(char *tr[]) {
-  unsigned char *addr;
-  int cont=25;
-  char elem;
-  int i,j;
-  if(tr[0]!=NULL){
-    addr = cadtop(tr[0]);
-    
-    if(tr[1]!=NULL)
-      cont = atoi(tr[1]);
-    
-    printf("Volcado de %d bytes en la dirección %p\n", cont, addr);
-
-    for(i=0; i<(cont/25); i++) {
-      for(j=0; j < 25; i++) {
-        if(j != 24) {
-          elem = addr[25*i+j];
-          if(elem >= 0x20 && elem < 0x7f)
-            printf("  %c", elem);
-          else
-            printf("  ");
-        }
-        else 
-          printf("\n");
-      }
-
-      for(j=0; j < 25; i++) {
-        if(j != 24)
-          printf("%02x", addr[25*i+j]);
-      }
-      printf("\n");
-    }
-
-    if((cont%25)!=0) {
-      for(j=0; j < (cont%25); j++) {
-        if(j != (cont%25)-1) {
-          elem = addr[i*25+j];
-          if(elem >= 0x20 && elem < 0x7f)
-            printf("  %c", elem);
-          else 
-            printf("  ");
-        }
-        else
-          printf("\n");
-      }
-      printf("\n");
-
-      for(j=0; j < (cont%25); j++) {
-        if(j != (cont%25)-1)
-          printf("%02x", addr[i*25+j]);
-      }
-      printf("\n");
-    }
-  }
-}
-*/
 
 //Llena la memoria a partir de addr con byte
 void Cmd_memfill(char *tr[]) {
