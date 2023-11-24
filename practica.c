@@ -350,6 +350,8 @@ void Cmd_list(char *tr[]){
 }
 
 
+//PRÁCTICA 2
+
 //Asigna memoria con la función malloc
 void Cmd_malloc(char *tr[], tListM memoryList){
 
@@ -629,6 +631,124 @@ void Cmd_write(char *tr[]) {
   }
 }
 
+//Vuelca el contenido de la memoria a la pantalla
+void Cmd_memdump(char *tr[]) {
+  unsigned char *addr;
+  int cont=25;
+  char elem;
+  int i,j;
+  if(tr[0]!=NULL){
+    addr = cadtop(tr[0]);
+    
+    if(tr[1]!=NULL)
+      cont = atoi(tr[1]);
+    
+    printf("Volcado de %d bytes en la dirección %p\n", cont, addr);
+
+    for(i=0; i<(cont/25); i++) {
+      for(j=0; j < 25; i++) {
+        if(j != 24) {
+          elem = addr[25*i+j];
+          if(elem >= 0x20 && elem < 0x7f)
+            printf("  %c", elem);
+          else
+            printf("  ");
+        }
+        else 
+          printf("\n");
+      }
+
+      for(j=0; j < 25; i++) {
+        if(j != 24)
+          printf("%02x", addr[25*i+j]);
+      }
+      printf("\n");
+    }
+
+    if((cont%25)==0) {
+      for(j=0; j < (cont%25); j++) {
+        if(j != 24) {
+          elem = addr[i];
+          if(elem >= 0x20 && elem < 0x7f)
+            printf("  %c", elem);
+          else 
+            printf("  ");
+        }
+        else
+          printf("\n");
+      }
+      printf("\n");
+
+      for(j=0; j < (cont%25); j++) {
+        if(j != 24)
+          printf("%02x", addr[i]);
+      }
+      printf("\n");
+    }
+  }
+}
+
+//Llena la memoria a partir de addr con byte
+void Cmd_memfill(char *tr[]) {
+  void *p; 
+  int cont;
+  unsigned char byte;
+
+  if(tr[0]) {
+    p = cadtop(tr[0]);
+    if(tr[1]!=NULL && tr[2]==NULL)
+      cont = atoi(tr[1]);
+    else if(tr[1] && tr[2]) {
+      cont = atoi(tr[1]);
+      byte = atoi(tr[2]);
+    }
+    printf("Llenando %d bytes de memoria con %c(%02x) en %p\n", cont, byte, byte, p);
+    LlenarMemoria(p, cont, byte); 
+  }
+}
+
+void mem_funcs() {
+  printf("Funciones programa\t %p, %p, %p\n", mem_funcs, Cmd_authors, Cmd_date);
+  printf("Funciones librería\t %p, %p, %p\n", strcmp, sscanf, printf);
+}
+
+int gl1=1,gl2=2,gl3=3;
+void mem_vars(){
+  static int st1=4,st2=5,st3=6;
+  int loc1=10,loc2=11,loc3=12;
+  printf("Variables locales\t %p, %p, %p\n", &loc1, &loc2, &loc3);
+  printf("Variables globales\t %p, %p, %p\n", &gl1, &gl2, &gl3);
+  printf("Variables estáticas\t %p, %p, %p\n", &st1, &st2, &st3);
+}
+
+//Muestra detalles de la memoria del proceso
+void Cmd_mem(char *tr[], tListM memoryList) {
+  if((tr[0]==NULL) || (strcmp(tr[0],"-all")==0)) {
+    mem_vars();
+    mem_funcs();
+    printListM(memoryList);
+  } else if(strcmp(tr[0], "-blocks")==0) {
+    printListM(memoryList);
+  } else if(strcmp(tr[0], "-funcs")==0) {
+    mem_funcs();
+  } else if(strcmp(tr[0], "-vars")==0) {
+    mem_vars();
+  } else if(strcmp(tr[0], "-pmap")==0) {
+    mem_pmap();
+  } else {
+    printf("Opcion %s no contemplada\n", tr[0]);
+  }
+}
+
+//Invoca a la funcion recursiva n veces
+void Cmd_recursiva(char *tr[]) {
+    if(tr[1]!=NULL){
+        long n = strtol(tr[1], NULL, 10);
+        int num=(int)n;
+        Recursiva(num);
+    }
+}
+
 //Imprime información sobre el comando que se le pasa, si no pasa comando muestra por pantalla los comandos disponibles
 void Cmd_help(char *tr[]) {
   if(tr[0] == NULL){
@@ -737,8 +857,8 @@ void Cmd_help(char *tr[]) {
     printf("\t-all: todo\n");
     printf("\t-pmap: muestra las salida del comando pmap (o similar)\n");
   }
-  else if (!strcmp(tr[0], "recurse")) {
-    printf("recurse [n]: Invoca a la función recursiva n veces\n");
+  else if (!strcmp(tr[0], "recursiva")) {
+    printf("recursiva [n]: Invoca a la función recursiva n veces\n");
   }
   else
     printf("%s no encontrado\n", tr[0]);
@@ -769,6 +889,9 @@ struct cmd cmds[]={
   {"list", Cmd_list},
   {"read", Cmd_read},
   {"write", Cmd_write},
+  {"memdump", Cmd_memdump},
+  {"memfill", Cmd_memfill},
+  {"recursiva", Cmd_recursiva},
 };
 
 void procesar_comando(char *tr[], tList comandList, tListF fileList, tListM memoryList) {
@@ -795,6 +918,8 @@ void procesar_comando(char *tr[], tList comandList, tListF fileList, tListM memo
     Cmd_shared(tr+1, memoryList);
   else if (!strcmp("mmap", tr[0]))
     Cmd_mmap(tr+1, memoryList);
+  else if (!strcmp("mem", tr[0]))
+    Cmd_mem(tr+1, memoryList);
   else {
     int i;
     for (i=0; cmds[i].nombre != NULL; i++){
