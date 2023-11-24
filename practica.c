@@ -707,17 +707,20 @@ void Cmd_memfill(char *tr[]) {
   int cont;
   unsigned char byte;
 
-  if(tr[0]) {
+  if(tr[0] != NULL) {
     p = cadtop(tr[0]);
-    if(tr[1]!=NULL && tr[2]==NULL)
-      cont = atoi(tr[1]);
-    else if(tr[1] && tr[2]) {
-      cont = atoi(tr[1]);
+    if (tr[1] == NULL)
+      cont = 128;	
+    if(tr[2]==NULL)
+      byte = (unsigned char)'A';
+    else {
+      cont = (size_t) strtoul(tr[1],NULL,10);	;
       byte = atoi(tr[2]);
     }
     printf("Llenando %d bytes de memoria con %c(%02x) en %p\n", cont, byte, byte, p);
     LlenarMemoria(p, cont, byte); 
-  }
+  } else 
+    return;
 }
 
 void mem_funcs() {

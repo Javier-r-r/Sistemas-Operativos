@@ -266,7 +266,7 @@ bool isNumberPos(char* str){
    return true;
 }
 
-void * ObtenerMemoriaShmget (key_t clave, size_t tam, tListM memoryList){
+void * ObtenerMemoriaShmget (key_t clave, size_t tam, tListM memoryList){       //Del fichero de ayuda
   void * p;
   int aux,id,flags=0777;
   struct shmid_ds s;
@@ -299,7 +299,7 @@ void * ObtenerMemoriaShmget (key_t clave, size_t tam, tListM memoryList){
   return (p);
 }
 
-void * MapearFichero (char * fichero, int protection, tListM memoryList) {
+void * MapearFichero (char * fichero, int protection, tListM memoryList) {        //Del fichero de ayuda
   int df, map=MAP_PRIVATE,modo=O_RDONLY;
   struct stat s;
   void *p;
@@ -320,18 +320,18 @@ void * MapearFichero (char * fichero, int protection, tListM memoryList) {
   time_t t= time(NULL);
   struct tm *tm = localtime(&t);
       
-  insertNodeM(&memoryList, p, (size_t)s.st_size, tm,"descriptor",0,df,copy);	//insert node in the list
+  insertNodeM(&memoryList, p, (size_t)s.st_size, tm,"descriptor",0,df,copy);	//Inserta el nodo en la lista correspondiente
     
   return p;
 }
 
-void * strToPointer(char *tr){		//converts a string into a pointer
+void * strToPointer(char *tr){		//Convierte el string en puntero
     void *p;
     sscanf(tr,"%p",&p);
     return p;
 }
 
-ssize_t LeerFichero (char *f, void *p, size_t cont){    
+ssize_t LeerFichero (char *f, void *p, size_t cont){    //Del fichero de ayuda
   struct stat s;
   ssize_t  n;  
   int df,aux;
@@ -350,7 +350,7 @@ ssize_t LeerFichero (char *f, void *p, size_t cont){
   return n;     //Devuelve el número de bytes leídos
 }
 
-ssize_t EscribirFichero(char *f, void *p, size_t cont,int overwrite) {
+ssize_t EscribirFichero(char *f, void *p, size_t cont,int overwrite) {    //Del fichero de ayuda
   ssize_t  n;
   int df,aux, flags=O_CREAT | O_EXCL | O_WRONLY;
 
@@ -397,7 +397,7 @@ void showMemory( void *addr, size_t len) {
 
 }
 
-void LlenarMemoria (void *p, size_t cont, unsigned char byte) {
+void LlenarMemoria (void *p, size_t cont, unsigned char byte) {           //Del fichero de ayuda
   unsigned char *arr=(unsigned char *) p;
   size_t i;
 
@@ -410,7 +410,7 @@ void *cadtop(char* cadena) {
   return p;
 }
 
-void mem_pmap (void) {
+void mem_pmap (void) {          //Del fichero de ayuda
   pid_t pid;      
   char elpid[32];
   char *argv[4]={"pmap",elpid,NULL};
@@ -440,7 +440,7 @@ void mem_pmap (void) {
   waitpid (pid,NULL,0);
 }
 
-void Recursiva (int n) {
+void Recursiva (int n) {    //Del fichero de ayuda
   char automatico[TAMANO];
   static char estatico[TAMANO];
 
