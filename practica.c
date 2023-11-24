@@ -707,24 +707,24 @@ void Cmd_memfill(char *tr[]) {
   int cont;
   unsigned char byte;
 
-  if(tr[0] != NULL) {
-    p = cadtop(tr[0]);
+  if(tr[0] != NULL) {     //Comprueba si hay una dirección de memoria
+    p = cadtop(tr[0]);    //Convierte esa dirección en un puntero
     if (tr[1] == NULL)
-      cont = 128;	
+      cont = 128;     //Si no se le pasa el argumento cont (número de bytes) utiliza 128 por defecto
     if(tr[2]==NULL)
-      byte = (unsigned char)'A';
+      byte = (unsigned char)'A';    //Si no se le pasa el valor del byte utiliza A por defecto
     else {
-      cont = (size_t) strtoul(tr[1],NULL,10);	;
-      byte = atoi(tr[2]);
+      cont = (size_t) strtoul(tr[1],NULL,10);	;     //Convierte la cadena con el número de bytes un valor entero
+      byte = atoi(tr[2]);                           //Convierte la cadena con el valor del byte a un valor entero
     }
-    printf("Llenando %d bytes de memoria con %c(%02x) en %p\n", cont, byte, byte, p);
+    printf("Llenando %d bytes de memoria con %c(%02x) en %p\n", cont, byte, byte, p);     //%02x porque es hexadecimal
     LlenarMemoria(p, cont, byte); 
   } else 
     return;
 }
 
 void mem_funcs() {
-  printf("Funciones programa\t %p, %p, %p\n", mem_funcs, Cmd_authors, Cmd_date);
+  printf("Funciones programa\t %p, %p, %p\n", mem_funcs, Cmd_authors, Cmd_date);    //%p imprime las direcciones de memoria en hexadecimal
   printf("Funciones librería\t %p, %p, %p\n", strcmp, sscanf, printf);
 }
 
