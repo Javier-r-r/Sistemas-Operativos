@@ -631,6 +631,18 @@ void Cmd_write(char *tr[]) {
   }
 }
 
+void Cmd_memdump(char *tr[]){
+
+    size_t c = 25;		//deafult line=25
+    
+    if(tr[0]==NULL) return;
+    
+    if(tr[1] != NULL) c=(size_t) strtoul(tr[1],NULL,10);
+    
+    printf("Volcando %zu bytes desde la dirección %p\n",c,strToPointer(tr[0]));
+    showMemory(strToPointer(tr[0]),c);
+}
+/* No funciona esta funcion
 //Vuelca el contenido de la memoria a la pantalla
 void Cmd_memdump(char *tr[]) {
   unsigned char *addr;
@@ -687,7 +699,7 @@ void Cmd_memdump(char *tr[]) {
     }
   }
 }
-
+*/
 //Llena la memoria a partir de addr con byte
 void Cmd_memfill(char *tr[]) {
   void *p; 
@@ -712,8 +724,8 @@ void mem_funcs() {
   printf("Funciones librería\t %p, %p, %p\n", strcmp, sscanf, printf);
 }
 
-int gl1=1,gl2=2,gl3=3;
 void mem_vars(){
+  int gl1=1,gl2=2,gl3=3;
   static int st1=4,st2=5,st3=6;
   int loc1=10,loc2=11,loc3=12;
   printf("Variables locales\t %p, %p, %p\n", &loc1, &loc2, &loc3);

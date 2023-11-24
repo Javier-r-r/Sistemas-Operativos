@@ -370,8 +370,34 @@ ssize_t EscribirFichero(char *f, void *p, size_t cont,int overwrite) {
   return n;       //Devuelve el número de bytes escritos
 }
 
-void LlenarMemoria (void *p, size_t cont, unsigned char byte)
-{
+void showMemory( void *addr, size_t len) {  
+    size_t i;
+    size_t j;    
+    unsigned char *pc = (unsigned char *)addr; 
+
+    for(i=1; i<=len ; i++){
+        if(pc[i-1] != '\0')  printf(" %c ",pc[i-1]);	//print characer
+        else   printf("   ");				//find null ,then no character
+        
+        if(i%25 == 0){					//line size 25
+            printf("\n");
+            for(j=i-25; j<i; j++){			//print hex code for character
+                printf("%.2x ", pc[j]);
+            }
+            printf("\n");
+        }
+    }
+    printf("\n");
+    if((len%25) != 0){					//print last line if is not multiple of 25
+        for(size_t k=len-(len%25)+1; k<=len; k++){
+                printf("%.2x ", pc[k-1]);
+        }
+        printf("\n");
+    }
+
+}
+
+void LlenarMemoria (void *p, size_t cont, unsigned char byte) {
   unsigned char *arr=(unsigned char *) p;
   size_t i;
 
@@ -380,42 +406,41 @@ void LlenarMemoria (void *p, size_t cont, unsigned char byte)
 }
 
 void *cadtop(char* cadena) {
-    void *p = (void*) strtoul(cadena, NULL, 16);
-    return p;
+  void *p = (void*) strtoul(cadena, NULL, 16);
+  return p;
 }
 
-void mem_pmap (void)
-{ pid_t pid;      
-    char elpid[32];
-    char *argv[4]={"pmap",elpid,NULL};
+void mem_pmap (void) {
+  pid_t pid;      
+  char elpid[32];
+  char *argv[4]={"pmap",elpid,NULL};
 
-    sprintf (elpid,"%d", (int) getpid());
-    if ((pid=fork())==-1){
-        perror ("Imposible crear proceso");
-        return;
-    }
-    if (pid==0){
-        if (execvp(argv[0],argv)==-1)
-            perror("cannot execute pmap (linux, solaris)");
+  sprintf (elpid,"%d", (int) getpid());
+  if ((pid=fork())==-1){
+    perror ("Imposible crear proceso");
+    return;
+  }
+  if (pid==0){
+    if (execvp(argv[0],argv)==-1)
+      perror("cannot execute pmap (linux, solaris)");
 
-        argv[0]="procstat"; argv[1]="vm"; argv[2]=elpid; argv[3]=NULL;
-        if (execvp(argv[0],argv)==-1)/*No hay pmap, probamos procstat FreeBSD */
-            perror("cannot execute procstat (FreeBSD)");
+    argv[0]="procstat"; argv[1]="vm"; argv[2]=elpid; argv[3]=NULL;
+    if (execvp(argv[0],argv)==-1)/*No hay pmap, probamos procstat FreeBSD */
+      perror("cannot execute procstat (FreeBSD)");
 
-        argv[0]="procmap",argv[1]=elpid;argv[2]=NULL;
-        if (execvp(argv[0],argv)==-1)  /*probamos procmap OpenBSD*/
-            perror("cannot execute procmap (OpenBSD)");
+    argv[0]="procmap",argv[1]=elpid;argv[2]=NULL;
+    if (execvp(argv[0],argv)==-1)  /*probamos procmap OpenBSD*/
+      perror("cannot execute procmap (OpenBSD)");
 
-        argv[0]="vmmap"; argv[1]="-interleave"; argv[2]=elpid;argv[3]=NULL;
-        if (execvp(argv[0],argv)==-1) /*probamos vmmap Mac-OS*/
-            perror("cannot execute vmmap (Mac-OS)");
-        exit(1);
-    }
-    waitpid (pid,NULL,0);
+    argv[0]="vmmap"; argv[1]="-interleave"; argv[2]=elpid;argv[3]=NULL;
+    if (execvp(argv[0],argv)==-1) /*probamos vmmap Mac-OS*/
+      perror("cannot execute vmmap (Mac-OS)");
+    exit(1);
+  }
+  waitpid (pid,NULL,0);
 }
 
-void Recursiva (int n)
-{
+void Recursiva (int n) {
   char automatico[TAMANO];
   static char estatico[TAMANO];
 
