@@ -677,10 +677,10 @@ void Cmd_memdump(char *tr[]) {
       printf("\n");
     }
 
-    if((cont%25)==0) {
+    if((cont%25)!=0) {
       for(j=0; j < (cont%25); j++) {
-        if(j != 24) {
-          elem = addr[i];
+        if(j != (cont%25)-1) {
+          elem = addr[i*25+j];
           if(elem >= 0x20 && elem < 0x7f)
             printf("  %c", elem);
           else 
@@ -692,14 +692,15 @@ void Cmd_memdump(char *tr[]) {
       printf("\n");
 
       for(j=0; j < (cont%25); j++) {
-        if(j != 24)
-          printf("%02x", addr[i]);
+        if(j != (cont%25)-1)
+          printf("%02x", addr[i*25+j]);
       }
       printf("\n");
     }
   }
 }
 */
+
 //Llena la memoria a partir de addr con byte
 void Cmd_memfill(char *tr[]) {
   void *p; 
