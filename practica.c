@@ -422,7 +422,10 @@ void Cmd_malloc(char *tr[], tListM memoryList){
 void Cmd_shared(char *tr[], tListM memoryList) {
   if (tr[0] == NULL) {
     printf("******Lista de bloques asignados shared para el proceso %d\n", getpid());
-   	printListShared(memoryList);
+    if(!isEmptyListM(memoryList)) {
+   	  printListShared(memoryList);
+	    return;
+    }
   } else if (!strcmp(tr[0], "-create")) {
     key_t cl;
     size_t tam;
@@ -492,15 +495,15 @@ void Cmd_shared(char *tr[], tListM memoryList) {
     int id;
     char *key=tr[1];
 
-    if (key==NULL || (clave=(key_t) strtoul(key,NULL,10))==IPC_PRIVATE){
+    if (key==NULL || (clave=(key_t) strtoul(key,NULL,10))==IPC_PRIVATE){    //Pasa la clave a un unsigned long
       printf ("      delkey necesita clave válida\n");
       return;
     }
-    if ((id=shmget(clave,0,0666))==-1){
+    if ((id=shmget(clave,0,0666))==-1){       //Intenta obtener la memoria compartida 
       perror ("shmget: imposible obtener memoria compartida");
       return;
     }
-    if (shmctl(id,IPC_RMID,NULL)==-1) {
+    if (shmctl(id,IPC_RMID,NULL)==-1) {       //Intenta eliminar la memoria compartida 
       perror ("shmctl: imposible eliminar memoria compartida");
       return;
     }
