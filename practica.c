@@ -706,6 +706,38 @@ void Cmd_recursiva(char *tr[]) {        //Fijarse porque salen esas direcciones,
   }
 }
 
+void Cmd_uid(char *tr[]) {
+  if ((tr[0] == NULL) || (!strcmp(tr[0], "-get"))) {
+    mostrarCredenciales();
+    return;
+  } else if (!strcmp(tr[0], "-set")) {
+    if (tr[1] == NULL) {
+      mostrarCredenciales();
+      return;
+    }
+    
+    uid_t new_uid;
+    
+    if (!strcmp(tr[1], "-l")) {
+      if (tr[2] == NULL) {
+        mostrarCredenciales();
+      } else {
+        new_uid = atoi(tr[2]);
+        if (setuid(new_uid) == -1) {
+          perror("Imposible cambiar credencial");
+          return;
+        }
+      }
+    } else {
+      new_uid = atoi(tr[1]);
+      if (seteuid(new_uid) == -1) {
+        perror("Imposible cambiar credencial");
+        return;
+      }
+    }
+  }
+}
+
 //Imprime información sobre el comando que se le pasa, si no pasa comando muestra por pantalla los comandos disponibles
 void Cmd_help(char *tr[]) {
   if(tr[0] == NULL){
@@ -817,6 +849,49 @@ void Cmd_help(char *tr[]) {
   else if (!strcmp(tr[0], "recursiva")) {
     printf("recursiva [n]: Invoca a la función recursiva n veces\n");
   }
+  else if (!strcmp(tr[0], "uid")) {
+    printf("uid [-get|-set] [-l] [id]: Accede a las credenciales del proceso que ejecuta el shell\n");
+    printf("\t-get: muestra las credenciales\n");
+    printf("\t-set id: establece la credencial al valor numerico id\n");
+    printf("\t-set -l id: establece la credencial a login id\n");
+  }
+  else if (!strcmp(tr[0], "showvar")) {
+    printf("showvar var: Muestra el valor y las direcciones de la variable de entorno var\n");
+  }
+  else if (!strcmp(tr[0], "changevar")) {
+    printf("changevar [-a|-e|-p] var valor: Cambia el valor de una variable de entorno\n");
+    printf("\t-a: accede por el tercer arg de main\n");
+    printf("\t-e: accede mediante environ\n");
+    printf("\t-p: accede mediante putenv\n");
+  }
+  else if (!strcmp(tr[0], "subsvar")) {
+    printf("subsvar [-a|-e] var1 var2 valor: Sustituye la variable de entorno var1 con var2 = valor");
+    printf("\t-a: accede por el tercer argumento de arg de main\n");
+    printf("\t-e: accede mediante environ\n");
+  }
+  else if (!strcmp(tr[0], "showenv")) {
+    printf("showenv [-environ|-addr]: Muestra el entorno del proceso\n");
+    printf("\t-environ: accede usando environ (en lugar del tercer arg de main)\n");
+    printf("\t-addr: muestra el valor y donde se almacenan environ y el tercer argumento de arg de main\n");
+  }
+  else if (!strcmp(tr[0], "fork")) {
+    printf("fork: El shell hace fork y queda en espera a que su hijo temrine\n");
+  }
+  else if (!strcmp(tr[0], "exec")) {
+    printf("exec VAR1 VAR2 ..prog args....[@pri]: Ejecuta, sin crear un proceso, prog con argumentos en un entorno que contiene solo variables VAR1, VAR2...\n");
+  }
+  else if (!strcmp(tr[0], "jobs")) {
+    printf("jobs: Lista los procesos en segundo plano\n");
+  }
+  else if (!strcmp(tr[0], "deljobs")) {
+    printf("deljobs [-term] [-sig]: Elimina todos los procesos de la lista procesos en sp\n");
+    printf("\t-term: los terminados\n");
+    printf("\t-sig: los terminados por senal\n");
+  }
+  else if (!strcmp(tr[0], "job")) {
+    printf("job [-fg] pid: Muestra información del proceso pid\n");
+    printf("\t-fg: lo pasa a primer plano\n");
+  }
   else
     printf("%s no encontrado\n", tr[0]);
 }
@@ -849,6 +924,7 @@ struct cmd cmds[]={
   {"memdump", Cmd_memdump},
   {"memfill", Cmd_memfill},
   {"recursiva", Cmd_recursiva},
+  {"uid", Cmd_uid},
 };
 
 void procesar_comando(char *tr[], tList comandList, tListF fileList, tListM memoryList) {

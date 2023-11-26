@@ -454,3 +454,19 @@ void Recursiva (int n) {    //Del fichero de ayuda
   if (n>0)
     Recursiva(n-1);
 }
+
+void mostrarCredenciales () {    
+  uid_t real_uid = getuid();
+  uid_t efectiva_uid = geteuid();
+
+  struct passwd *real_info = getpwuid(real_uid);
+  struct passwd *efectiva_info = getpwuid(efectiva_uid);
+
+  if (real_info == NULL || efectiva_info == NULL) {
+    perror("Error al recuperar información");
+    return;
+  }
+
+  printf("Credencial real: %d, (%s)\n", real_uid, real_info->pw_name);
+  printf("Credencial efectiva: %d, (%s)\n", efectiva_uid, efectiva_info->pw_name);
+}

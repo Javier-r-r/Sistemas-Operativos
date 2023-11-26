@@ -58,3 +58,4 @@ void LlenarMemoria (void *p, size_t cont, unsigned char byte);
 void *cadtop(char* cadena);
 void mem_pmap();
 void Recursiva (int n);
+void mostrarCredenciales ();
