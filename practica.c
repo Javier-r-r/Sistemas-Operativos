@@ -742,22 +742,101 @@ void Cmd_uid(char *tr[]) {
   }
 }
 
+void Cmd_showenv(char *tr[]){
+  if(tr[0] == NULL){
+    showEnvironment(env1,"main arg3");
+    return;
+  }
+    
+  if(!strcmp(tr[0],"-environ"))
+    showEnvironment(environ,"environ");
+  else if(!strcmp(tr[0],"-addr")){
+    printf("environ:   %p (almacenado en %p)\n",&environ[0],&environ);
+    printf("main arg3: %p (almacenado en %p)\n",&environ[0],&env1);
+  }else
+    printf("Uso: showenv [-environ|-addr]\n");
+}
+
 void Cmd_showvar(char *tr[]) {
   int pos;
   char *s[1];
   s[0]=NULL;
     
   if(tr[0] == NULL){
-    Cmd_showenv(tr);
+    Cmd_showenv(s);
     return;
   }
     
   if( (pos = BuscarVariable(tr[0],environ)) == -1)
     return;
   
-  printf("With arg3 main %s(%p) @%p\n",environ[pos],environ[pos],env1);
-  printf("With environ %s(%p) @%p\n",environ[pos],environ[pos],&environ[pos]);
-  printf("With getenv main %s(%p)\n",getenv(tr[0]),&environ[pos]);
+  //printf("Con arg3 main %s(%p) @%p\n",environ[pos],environ[pos],env1);
+  printf("Con environ %s(%p) @%p\n",environ[pos],environ[pos],&environ[pos]);
+  printf("Con getenv %s(%p)\n",getenv(tr[0]),&environ[pos]);
+}
+
+void Cmd_changevar(char *tr[]){
+    
+    char new[MAX]="";
+    
+    if(tr[0] == NULL || tr[1] == NULL || tr[2] == NULL){
+    	printf("Uso: changevar [-a|-e|-p] var valor\n");
+    	return;
+    }
+    
+    if(!strcmp(tr[0],"-a")){
+      if (tr[1] == NULL || tr[2] == NULL) {
+        printf("Uso: changevar [-a|-e|-p] var valor\n");
+    	  return; 
+      }
+    	if((CambiarVariable(tr[1],tr[2],env1)) == -1){
+    	    perror("Imposible cambiar variable"); //Aqui creo que mejor poner perror
+    	    return;
+    	}
+    }
+    else if(!strcmp(tr[0],"-e")){
+      if (tr[1] == NULL || tr[2] == NULL) {
+        printf("Uso: changevar [-a|-e|-p] var valor\n");
+    	  return; 
+      }
+    	if((CambiarVariable(tr[1],tr[2],environ)) == -1){
+    	    perror("Imposible cambiar variable");
+    	    return;
+    	}
+    }
+    else if(!strcmp(tr[0],"-p")){
+      if (tr[1] == NULL || tr[2] == NULL) {
+        printf("Uso: changevar [-a|-e|-p] var valor\n");
+    	  return; 
+      }
+    	strcpy(new,tr[1]);
+    	strcat(new,"=");
+    	strcat(new,tr[2]);
+    	putenv(new);
+    }
+    else  printf("Uso: changevar [-a|-e|-p] var valor\n");
+}
+
+void Cmd_subsvar(char *tr[]) {
+  if (tr[0] == NULL || tr[1] == NULL || tr[2] == NULL || tr[3] == NULL) {
+    printf("Uso: subsvar [-a|-e] var1 var2 valor\n");
+    return;
+  } 
+  if (!strcmp(tr[0], "-a")) {
+    // Accede por el tercer argumento de main
+    setenv(tr[1], tr[3], 1);
+  } else if (!strcmp(tr[0], "-e")) {
+    while (*env1) {
+      if (strncmp(*env1, tr[1], strlen(tr[1])) == 0 && (*env1)[strlen(tr[1])] == '=') {
+        // Encontró la variable, la reemplaza
+        char *new_var = malloc(strlen(tr[1]) + strlen(tr[3]) + 2); // +2 para el '=' y el '\0'
+        sprintf(new_var, "%s=%s", tr[1], tr[3]);
+        *env1 = new_var;
+        break;
+      }
+      env1++;
+    }
+  }
 }
 
 //Imprime información sobre el comando que se le pasa, si no pasa comando muestra por pantalla los comandos disponibles
@@ -947,6 +1026,10 @@ struct cmd cmds[]={
   {"memfill", Cmd_memfill},
   {"recursiva", Cmd_recursiva},
   {"uid", Cmd_uid},
+  {"showvar", Cmd_showvar},
+  {"showenv", Cmd_showenv},
+  {"changevar", Cmd_changevar},
+  {"subsvar", Cmd_subsvar},
 };
 
 void procesar_comando(char *tr[], tList comandList, tListF fileList, tListM memoryList) {
@@ -987,7 +1070,7 @@ void procesar_comando(char *tr[], tList comandList, tListF fileList, tListM memo
   }
 }
 
-int main() {
+int main(int argc, char *argv[], char *env[]) {
   char comando[MAX]; // Usamos un array de caracteres para almacenar el comando
   char *tr[MAX];
   tList commandList;
@@ -996,6 +1079,7 @@ int main() {
   createList(&commandList);
   createListF(&fileList);
   createListM(&memoryList);
+  env1 = env;
 
   while (1) {
     printf("-> ");

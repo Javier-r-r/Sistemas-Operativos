@@ -59,3 +59,6 @@ void *cadtop(char* cadena);
 void mem_pmap();
 void Recursiva (int n);
 void mostrarCredenciales ();
+int BuscarVariable(char * var, char *e[]);
+void showEnvironment(char **entorno, char * nombre_entorno);
+int CambiarVariable(char * var, char * valor, char *e[]);
