@@ -3,6 +3,10 @@
 
 #include "cabecerasAux.h"
 
+char ** env1;
+
+extern char ** environ;
+
 //Funcion que realiza el comando N de la lista hist
 void Cmd_comand(tList commandList, tListF fileList, tListM memoryList, char *tr[]) {
   int N = atoi (tr[0]);
@@ -736,6 +740,24 @@ void Cmd_uid(char *tr[]) {
       }
     }
   }
+}
+
+void Cmd_showvar(char *tr[]) {
+  int pos;
+  char *s[1];
+  s[0]=NULL;
+    
+  if(tr[0] == NULL){
+    Cmd_showenv(tr);
+    return;
+  }
+    
+  if( (pos = BuscarVariable(tr[0],environ)) == -1)
+    return;
+  
+  printf("With arg3 main %s(%p) @%p\n",environ[pos],environ[pos],env1);
+  printf("With environ %s(%p) @%p\n",environ[pos],environ[pos],&environ[pos]);
+  printf("With getenv main %s(%p)\n",getenv(tr[0]),&environ[pos]);
 }
 
 //Imprime información sobre el comando que se le pasa, si no pasa comando muestra por pantalla los comandos disponibles
