@@ -13,6 +13,9 @@ funcionesAux.o: funcionesAux.c cabecerasAux.h
 memory_list.o: memory_list.c memory_list.h
 	gcc -c memory_list.c
 
+process_list.o: process_list.c process_list.h
+    gcc -c process_list.c
+
 limpiar: 
 	rm p3 comand_list.o ficheros_list.o funcionesAux.o memory_list.o
 

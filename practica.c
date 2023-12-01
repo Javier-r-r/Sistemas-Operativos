@@ -839,6 +839,18 @@ void Cmd_subsvar(char *tr[]) {
   }
 }
 
+void Cmd_fork(char *tr[]) {
+  
+  pid_t pid;
+	
+	if ((pid=fork())==0){
+/*		VaciarListaProcesos(&LP); Depende de la implementación de cada uno*/
+		printf ("ejecutando proceso %d\n", getpid());
+	}
+	else if (pid!=-1)
+		waitpid (pid,NULL,0);
+}
+
 //Imprime información sobre el comando que se le pasa, si no pasa comando muestra por pantalla los comandos disponibles
 void Cmd_help(char *tr[]) {
   if(tr[0] == NULL){
