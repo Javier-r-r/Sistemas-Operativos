@@ -823,19 +823,35 @@ void Cmd_subsvar(char *tr[]) {
     return;
   } 
   if (!strcmp(tr[0], "-a")) {
-    // Accede por el tercer argumento de main
-    setenv(tr[1], tr[3], 1);
-  } else if (!strcmp(tr[0], "-e")) {
-    while (*env1) {
-      if (strncmp(*env1, tr[1], strlen(tr[1])) == 0 && (*env1)[strlen(tr[1])] == '=') {
-        // Encontró la variable, la reemplaza
-        char *new_var = malloc(strlen(tr[1]) + strlen(tr[3]) + 2); // +2 para el '=' y el '\0'
-        sprintf(new_var, "%s=%s", tr[1], tr[3]);
-        *env1 = new_var;
-        break;
-      }
-      env1++;
+    char message[MAX];
+    char *e[] = {NULL};
+    int pos = CambiarVariable(tr[1], tr[2], e);
+    if (pos == -1) {
+      snprintf(message, sizeof(message), "Imposible sustituir variable %s por %s", tr[1], tr[2]);
+      perror(message);
+      return;
     }
+    printf("Variable de entorno actualizada: %s=%s\n", tr[2], tr[3]);
+  } else if (!strcmp(tr[0], "-e")) {
+    char message[MAX];
+    int pos = BuscarVariable(tr[1], environ);
+    if (pos == -1) {
+      snprintf(message, sizeof(message), "Imposible sustituir variable %s por %s", tr[1], tr[2]);
+      perror(message);
+      return;
+    }
+
+    environ[pos] = malloc(strlen(tr[2]) + strlen(tr[3]) + 2);
+    if (environ[pos] == NULL) {
+      perror("Error al asignar memoria");
+      return;
+    }
+
+    strcpy(environ[pos], tr[2]);
+    strcat(environ[pos], "=");
+    strcat(environ[pos], tr[3]);
+
+    printf("Variable de entorno actualizada: %s=%s\n", tr[2], tr[3]);
   }
 }
 

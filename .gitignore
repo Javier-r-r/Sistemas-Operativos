@@ -3,5 +3,6 @@ comand_list.o
 ficheros_list.o
 funcionesAux.o
 memory_list.o
-p2
+process_list.o
+p3
 .idea/
