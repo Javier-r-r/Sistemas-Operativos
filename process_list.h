@@ -2,17 +2,36 @@
 #define PROCESS_LIST_H
 
 #include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <time.h>
+#include <sys/utsname.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <dirent.h>
+#include <pwd.h>
+#include <grp.h>
+#include <errno.h>
+#include <sys/shm.h>
+#include  <sys/ipc.h>
+#include <sys/mman.h>
+#include <fcntl.h>
+#include <sys/wait.h>
+#include <sys/resource.h>
+#include <signal.h>
 #define PNULL NULL
 #define MAX 1024
 
 typedef struct tItemPL {
-    pid_t pid;
+    int pid;
     int uid;
-    char time[MAX];
+    char *time;
     char status[MAX];
-    int index;
-    char priority[MAX];
-    int out;
+    int sign;
+    char *command;
+    int priority;
 } tItemPL;
 
 typedef struct tNodeP *tPosPL;
@@ -32,17 +51,19 @@ tPosPL firstP(tListP P);
 tPosPL lastP(tListP P);
 
 tPosPL nextP(tPosPL p, tListP P);
-
-bool insertNodeP(tListP *P, pid_t pid, int uid; char time[MAX], char status[MAX], int index, char priority[MAX]);
+    
+bool insertNodeP(tListP *P, int pid, int uid, char *time, char status[MAX], int sign, char *command, int priority);
 
 void removeElementP(tPosPL p, tListP *P); //Elimina un proceso
 
 void deleteAtPositionP(tPosPL p, tListP *P);
 
-void freeListP(tListP P);
+void deleteListP(tListP *P);
 
 tItemPL getData(tPosPL p);
 
 void updateListP(tPosPL p, tListP *P);
+
+int forkaux();
 
 #endif

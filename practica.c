@@ -2,6 +2,7 @@
 //Miguel Corton Deben || mcortond@udc.es, grupo 4.2
 
 #include "cabecerasAux.h"
+#include "process_list.h"
 
 char ** env1;
 
@@ -858,17 +859,11 @@ void Cmd_subsvar(char *tr[]) {
   }
 }
 
-void Cmd_fork(char *tr[]) {
-  
-  pid_t pid;
-	
-	if ((pid=fork())==0){
-/*		VaciarListaProcesos(&LP); Depende de la implementación de cada uno*/
-		printf ("ejecutando proceso %d\n", getpid());
-	}
-	else if (pid!=-1)
-		waitpid (pid,NULL,0);
+void Cmd_fork(tListP *LP){
+    forkaux();
+    deleteListP(LP);
 }
+
 
 //Imprime información sobre el comando que se le pasa, si no pasa comando muestra por pantalla los comandos disponibles
 void Cmd_help(char *tr[]) {
@@ -1061,6 +1056,7 @@ struct cmd cmds[]={
   {"showenv", Cmd_showenv},
   {"changevar", Cmd_changevar},
   {"subsvar", Cmd_subsvar},
+  {"fork", Cmd_fork},
 };
 
 void procesar_comando(char *tr[], tList comandList, tListF fileList, tListM memoryList) {
