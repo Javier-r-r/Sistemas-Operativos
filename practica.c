@@ -710,6 +710,9 @@ void Cmd_recursiva(char *tr[]) {        //Fijarse porque salen esas direcciones,
   }
 }
 
+
+//PRÁCTICA 3
+
 void Cmd_uid(char *tr[]) {
   if ((tr[0] == NULL) || (!strcmp(tr[0], "-get"))) {
     mostrarCredenciales();
