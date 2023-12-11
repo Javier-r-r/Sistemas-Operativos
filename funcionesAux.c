@@ -513,3 +513,23 @@ int CambiarVariable(char * var, char * valor, char *e[])
   e[pos]=aux;
   return (pos);
 }
+char * getTime(char buffer[MAX]){
+    
+    time_t thisDay;
+    int day,hours,month,minutes, year, seconds;
+    
+    time(&thisDay);
+    
+    struct tm *local = localtime(&thisDay);
+    day = local -> tm_mday;
+    hours = local -> tm_hour;
+    month = local -> tm_mon + 1;
+    minutes = local -> tm_min;
+    year = local -> tm_year + 1900;
+    seconds = local -> tm_sec;
+    
+    sprintf(buffer, "%d/%d/%d  %02d:%02d:%02d", year, month, day, hours, minutes, seconds);
+    
+    return buffer;
+       
+}

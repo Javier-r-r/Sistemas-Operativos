@@ -2,14 +2,13 @@
 //Miguel Corton Deben || mcortond@udc.es, grupo 4.2
 
 #include "cabecerasAux.h"
-#include "process_list.h"
 
 char ** env1;
 
 extern char ** environ;
 
 //Funcion que realiza el comando N de la lista hist
-void Cmd_comand(tList commandList, tListF fileList, tListM memoryList, char *tr[]) {
+void Cmd_comand(tList commandList, tListF fileList, tListM memoryList, tListP processList, char *tr[]) {
   int N = atoi (tr[0]);
   if (N) {
     if (countItems(commandList) <= N) {
@@ -19,7 +18,7 @@ void Cmd_comand(tList commandList, tListF fileList, tListM memoryList, char *tr[
       tItemL item = getItem(atoi(tr[0]), commandList);
       TrocearCadena(item.comando, trozos);
       printf("Ejecutando hist (%d): %s\n", atoi(tr[0]), trozos[0]);
-      procesar_comando(trozos, commandList, fileList, memoryList);
+      procesar_comando(trozos, commandList, fileList, memoryList, processList);
     }
   } else 
     printf("Comando no encontrado\n");
@@ -1023,13 +1022,15 @@ void Cmd_help(char *tr[]) {
     printf("%s no encontrado\n", tr[0]);
 }
 
-void Cmd_exit(tListF fileList, tList commandList, tListM memoryList){	//Libera la memoria y luego finaliza el programa
+void Cmd_exit(tListF fileList, tList commandList, tListM memoryList, tListP processList){	//Libera la memoria y luego finaliza el programa
   freeList(&commandList);
   freeListF(&fileList);
   freeListM(&memoryList);
+  freeListP(&processList);
   free(commandList);
   free(fileList);
   free(memoryList);
+  free(processList);
   exit(0);
 }
 
@@ -1059,16 +1060,16 @@ struct cmd cmds[]={
   {"fork", Cmd_fork},
 };
 
-void procesar_comando(char *tr[], tList comandList, tListF fileList, tListM memoryList) {
+void procesar_comando(char *tr[], tList comandList, tListF fileList, tListM memoryList, tListP processList) {
 
   if (tr[0] == NULL)
     return;
   if (!strcmp("comand", tr[0]))
-    Cmd_comand(comandList, fileList, memoryList, tr+1);
+    Cmd_comand(comandList, fileList, memoryList, processList, tr+1);
   else if (!strcmp("hist", tr[0]))
     Cmd_hist(&comandList, tr+1);
   else if (!strcmp("exit", tr[0]) || !strcmp("quit", tr[0]) || !strcmp("bye", tr[0]))
-    Cmd_exit(fileList, comandList, memoryList);
+    Cmd_exit(fileList, comandList, memoryList, processList);
   else if (!strcmp("open", tr[0]))
     Cmd_open(tr+1, fileList);
   else if (!strcmp("close", tr[0]))
@@ -1087,12 +1088,47 @@ void procesar_comando(char *tr[], tList comandList, tListF fileList, tListM memo
     Cmd_mem(tr+1, memoryList);
   else {
     int i;
+    pid_t pid;
+    int k=0;    
+    char aux[MAX]=""; 
+    char state[MAX]="ACTIVE";
+    char thisTime[MAX];
     for (i=0; cmds[i].nombre != NULL; i++){
       if (!strcmp(cmds[i].nombre, tr[0])) {
         (cmds[i].pfuncion) (tr+1);
         return;
       }
     }
+    if(tr[0] == NULL){
+      Cmd_exec(tr);
+      return;
+    }
+        
+    for(k=0; tr[k] != NULL; k++);       
+        
+    if((pid = fork()) == 0){
+      Cmd_exec(tr);
+      Cmd_exit(fileList, comandList, memoryList, processList);
+            
+      }else{
+        if(!strcmp(tr[k-1],"&")){                  
+               
+          if((k-1) == 0)
+            strcpy(aux,"NULL");
+          else{
+            for(int j=0; tr[j] != NULL; j++)
+              if(strcmp(tr[j],"&")){
+                strcat(aux,tr[j]); 
+                strcat(aux," ");                  
+              }
+          }  	   
+               	                
+          insertNodeP(&processList, pid, getuid(), getTime(thisTime), state, 0, aux, 0); 
+               
+        }else{
+          waitpid(pid,NULL,0);
+        }
+      }
     printf("Comando %s no encontrado. Consulte la lista de comandos disponibles con help\n", tr[0]);
   }
 }
@@ -1103,9 +1139,11 @@ int main(int argc, char *argv[], char *env[]) {
   tList commandList;
   tListF fileList;
   tListM memoryList;
+  tListP processList;
   createList(&commandList);
   createListF(&fileList);
   createListM(&memoryList);
+  createListP(&processList);
   env1 = env;
 
   while (1) {
@@ -1120,7 +1158,7 @@ int main(int argc, char *argv[], char *env[]) {
     else {
       insertElement(comando, &commandList);
       TrocearCadena(comando, tr);
-      procesar_comando(tr, commandList, fileList, memoryList);
+      procesar_comando(tr, commandList, fileList, memoryList, processList);
     }
   }
   return 0;

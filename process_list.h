@@ -66,4 +66,6 @@ void updateListP(tPosPL p, tListP *P);
 
 int forkaux();
 
+void freeListP(tListP *L);
+
 #endif

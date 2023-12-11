@@ -277,3 +277,13 @@ int forkaux(){
         return 0;
     } return -1;
 }
+void freeListP(tListP *L){
+    tPosPL p, aux;
+    
+    while((*L)->next != PNULL){
+        p = (*L)->next;
+        aux = p;
+        p=p->next;
+        deleteAtPositionP(aux,L);
+    }
+}
