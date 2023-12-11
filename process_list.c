@@ -211,6 +211,26 @@ void removeElemP(tPosPL p, tListP *P) {       //Borra un elemento en una posiciÃ
     free(p);
 }
 
+void removeTermP(tListP *P) {       //Elimina procesos ya terminados
+    tPosPL p = *P;
+    tPosPL aux;
+    while (p!=NULL) {
+        aux = p->next;
+        if(strcmp(p->data.status, "TERMINADO")==0) removeElemP(p, P);
+        p = aux;
+    }
+}
+
+void removeSigP(tListP *P){         //Elimina procesos terminados por seÃ±al
+    tPosPL p = *P;
+    tPosPL aux;
+    while (p!=NULL) {
+        aux = p->next;
+        if(strcmp(p->data.status, "SENALADO")==0) removeElemP(p, P);
+        p = aux;
+    }
+}
+
 void deleteAtPositionP(tPosPL p, tListP *P) {
     tPosPL aux;
 
@@ -262,6 +282,17 @@ void updateListP(tPosPL p, tListP *P) {
         }else if(WIFCONTINUED(p->data.sign)){
             strcpy(p->data.status, "ACTIVO");
             p->data.sign = 0;
+        }
+    }
+}
+
+void printListP(tListP P){
+    if(P!=NULL) {
+        tPosPL p = P;
+        updateListP(p, &P);
+        while(p!=NULL){
+            printf("%6d %d p=%d %s %s (%3s) %s\n", p->data.pid, p->data.uid, p->data.priority, p->data.time, p->data.status, NombreSenal(p->data.sign), p->data.command);
+            p=p->next;
         }
     }
 }

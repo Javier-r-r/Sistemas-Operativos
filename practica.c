@@ -858,11 +858,28 @@ void Cmd_subsvar(char *tr[]) {
   }
 }
 
-void Cmd_fork(tListP *LP){
+void Cmd_fork(tListP *P){
     forkaux();
-    deleteListP(LP);
+    deleteListP(P);
 }
 
+void Cmd_jobs(tListP *P){
+    printListP(*P);
+}
+
+void Cmd_deljobs(char* tr[], tListP *P){
+    if(tr[0]==NULL){
+        printListP(*P);
+    }else if(strcmp(tr[0], "-term")==0){
+        removeTermP(P);
+        printListP(*P);
+    }else if(strcmp(tr[0], "-sig")==0){
+        removeSigP(P);
+        printListP(*P);
+    }else printListP(*P);
+}
+
+void Cmd_exec(char* tr[]){}
 
 //Imprime información sobre el comando que se le pasa, si no pasa comando muestra por pantalla los comandos disponibles
 void Cmd_help(char *tr[]) {
@@ -1057,7 +1074,6 @@ struct cmd cmds[]={
   {"showenv", Cmd_showenv},
   {"changevar", Cmd_changevar},
   {"subsvar", Cmd_subsvar},
-  {"fork", Cmd_fork},
 };
 
 void procesar_comando(char *tr[], tList comandList, tListF fileList, tListM memoryList, tListP processList) {
@@ -1086,6 +1102,12 @@ void procesar_comando(char *tr[], tList comandList, tListF fileList, tListM memo
     Cmd_mmap(tr+1, memoryList);
   else if (!strcmp("mem", tr[0]))
     Cmd_mem(tr+1, memoryList);
+  else if (!strcmp("fork", tr[0]))
+    Cmd_fork(&processList);
+  else if (!strcmp("jobs", tr[0]))
+    Cmd_jobs(&processList);
+  else if (!strcmp("deljobs", tr[0]))
+    Cmd_deljobs(tr+1, processList);
   else {
     int i;
     pid_t pid;

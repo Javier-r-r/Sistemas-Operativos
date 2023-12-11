@@ -56,6 +56,10 @@ bool insertNodeP(tListP *P, int pid, int uid, char *time, char status[MAX], int 
 
 void removeElementP(tPosPL p, tListP *P); //Elimina un proceso
 
+void removeTermP(tListP *P);
+
+void removeSigP(tListP *P);
+
 void deleteAtPositionP(tPosPL p, tListP *P);
 
 void deleteListP(tListP *P);
@@ -63,6 +67,8 @@ void deleteListP(tListP *P);
 tItemPL getData(tPosPL p);
 
 void updateListP(tPosPL p, tListP *P);
+
+void printListP(tListP P);
 
 int forkaux();
 
