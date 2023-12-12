@@ -863,11 +863,13 @@ void Cmd_fork(tListP *P){
     deleteListP(P);
 }
 
+void Cmd_exec(char* tr[]){}
+
 void Cmd_jobs(tListP *P){
     printListP(*P);
 }
 
-void Cmd_deljobs(char* tr[], tListP *P){
+void Cmd_deljobs(char *tr[], tListP *P){
     if(tr[0]==NULL){
         printListP(*P);
     }else if(strcmp(tr[0], "-term")==0){
@@ -879,7 +881,24 @@ void Cmd_deljobs(char* tr[], tListP *P){
     }else printListP(*P);
 }
 
-void Cmd_exec(char* tr[]){}
+void Cmd_job(char *tr[], tListP *P) {
+  pid_t pid;
+  int st;
+  tPosPL p;
+  if(tr[0]==NULL)
+      printListP(*P);
+  else{
+      if(strcmp(tr[0], "-fg")==0){
+          pid=atoi(tr[1]);
+          if((p = searchPid(pid, *P))!=NULL){
+              waitpid(pid,&st,0);
+              printf("Proceso %d terminado normalmente. Valor devuelto %d\n", pid, st);
+              removeElemP(p, P);
+          }
+      }else
+          printJob(atoi(tr[0]), *P);
+  }
+}
 
 //Imprime información sobre el comando que se le pasa, si no pasa comando muestra por pantalla los comandos disponibles
 void Cmd_help(char *tr[]) {
@@ -1076,7 +1095,136 @@ struct cmd cmds[]={
   {"subsvar", Cmd_subsvar},
 };
 
-void procesar_comando(char *tr[], tList comandList, tListF fileList, tListM memoryList, tListP processList) {
+//Funciones para el comando externo, para probar si funcionan el job y deljobs → las funciones siguientes funcionan pero hay que colocarlas bien en el código
+/*
+bool insertElementP(int pid, char* comm, tListP *P){
+    tPosPL q,r; struct passwd *p;
+    char fecha[MAX];
+    char* formato = "%y/%m/%d %H:%M:%S";
+    uid_t user;
+    //se crea un nodo (si es posible)
+    if (!createNodeP(&q))    return false;
+    else{
+        time_t now = time(NULL);
+        struct tm *local = localtime(&now);
+        strftime(fecha, MAX, formato, local);
+        q->data.time = strdup(fecha);
+        q->data.pid = pid;
+        user = getuid();
+        p = getpwuid(user);
+        q->data.uid = strdup(p->pw_name);
+        q->data.priority = getpriority(PRIO_PROCESS, q->data.pid);
+        q->data.command = strdup(comm);
+        strcpy(q->data.status, "ACTIVO");
+        q->data.sign = 0;
+        q->next = NULL;
+        if(*P==NULL) *P=q;
+        else {
+            for (r = *P; r->next != NULL; r = r->next); //move to end
+            r->next=q;
+        }return true;
+    }
+}
+
+int getPrioExt(char* pri){
+    int j;
+    char auxpri[MAX];
+    for(j=0; pri[j+1]; j++){
+        auxpri[j]=pri[j+1];
+    }
+    return atoi(auxpri);
+}
+
+void identifyData(char* argv[], char* var[], char* prog[], int *prio, int *bg){
+    int i, j, k=0, a, terminar=0, variable;
+    
+    for(i=0; argv[i]!=NULL && terminar==0; i++){ //buscamos las variables en las que se ejecutará prog
+        if((variable=BuscarVariable(argv[i], environ))!=-1){
+            var[i]=environ[variable];
+        }else terminar=1;
+    }
+    if(i==0) a=0; else a=i-1;
+    if(argv[a]!=NULL){ 
+        for(j=a; argv[j]!=NULL && strcmp(argv[j], "&")!=0 ; j++){ //buscamos prog args
+            prog[k]=argv[j];
+            k++;
+        }
+        if(argv[j]==NULL){
+            *bg = 0;
+        }else if(strcmp(argv[j], "&")==0){
+            *bg=1;
+        }
+        if(prog[0]!=NULL){
+            char* cprio = prog[k-1];
+            if(cprio[0]=='@'){
+                *prio = getPrioExt(cprio);
+                for(j=0; prog[j+1]!=NULL; j++);
+                prog[j]=NULL;
+            }
+        }
+    }else{
+        printf("Argumentos insuficientes\n");
+    }   
+}
+
+const char * Ejecutable (const char *s)
+{
+	char path[MAX];
+	static char aux2[MAX];
+	struct stat st;
+	char *p;
+	if (s==NULL || (p=getenv("PATH"))==NULL)
+		return s;
+	if (s[0]=='/' || !strncmp (s,"./",2) || !strncmp (s,"../",3))
+        return s;       /*is an absolute pathname
+	strncpy (path, p, MAX);
+	for (p=strtok(path,":"); p!=NULL; p=strtok(NULL,":")){
+       sprintf (aux2,"%s/%s",p,s);
+	   if (lstat(aux2,&st)!=-1)
+		return aux2;
+	}
+	return s;
+}
+
+int OurExecvpe(const char *file, char *const argv[], char *const envp[])
+{
+   return (execve(Ejecutable(file),argv, envp));
+}
+
+void exterprog(char* argv[], tListP *P){
+    int prio, bg, pid, i, st;
+    char* var[MAX]={}; char *prog[MAX]={};   
+    char aux[MAX] = "";
+    prio=0; bg=0;
+    
+    identifyData(argv, var, prog, &prio, &bg);  
+    
+    if(prog[0]!=NULL){
+        if((pid=fork())==-1){ 
+            perror("No se puede hacer fork");
+        }else if(pid>0){ //soy el padre (pid hijo)
+            if(prio!=0) setpriority(PRIO_PROCESS, pid, prio);
+            if(bg==1){
+                for(i=0; argv[i]!=NULL; i++){
+                    strcat(aux, argv[i]);
+                    strcat(aux, " ");
+                }
+                insertElementP(pid, aux, P);
+            } 
+            else waitpid(pid, &st, 0);
+        }else if(pid==0){ //soy el hijo 
+            if(var[0]!=NULL){ 
+                OurExecvpe(prog[0], prog, var);
+            }else{
+                OurExecvpe(prog[0], prog, environ);
+            }
+        }
+    }else printf("Faltan parámetros\n");
+    
+
+}*/
+
+void procesar_comando(char *tr[], tList comandList, tListF fileList, tListM memoryList, tListP *processList) {
 
   if (tr[0] == NULL)
     return;
@@ -1103,11 +1251,15 @@ void procesar_comando(char *tr[], tList comandList, tListF fileList, tListM memo
   else if (!strcmp("mem", tr[0]))
     Cmd_mem(tr+1, memoryList);
   else if (!strcmp("fork", tr[0]))
-    Cmd_fork(&processList);
+    Cmd_fork(processList);
   else if (!strcmp("jobs", tr[0]))
-    Cmd_jobs(&processList);
+    Cmd_jobs(processList);
   else if (!strcmp("deljobs", tr[0]))
     Cmd_deljobs(tr+1, processList);
+  else if (!strcmp("job", tr[0]))
+    Cmd_job(tr+1, processList);
+  else {
+    exterprog(tr,processList);
   else {
     int i;
     pid_t pid;
@@ -1150,7 +1302,7 @@ void procesar_comando(char *tr[], tList comandList, tListF fileList, tListM memo
         }else{
           waitpid(pid,NULL,0);
         }
-      }
+      }*/
     printf("Comando %s no encontrado. Consulte la lista de comandos disponibles con help\n", tr[0]);
   }
 }

@@ -318,3 +318,19 @@ void freeListP(tListP *L){
         deleteAtPositionP(aux,L);
     }
 }
+
+tPosPL searchPid(int pid, tListP P){
+    tPosPL p = P;
+    while(p!=PNULL){
+        if(p->data.pid == pid)
+            return p;
+        p=p->next;
+    }return NULL;
+}
+
+void printJob(int pid, tListP P){
+    tPosPL p;
+    updateListP(p, &P);
+    if((p = searchPid(pid, P))!=NULL)
+        printf("%6d %d p=%d %s %s (%3s) %s\n", p->data.pid, p->data.uid, p->data.priority, p->data.time, p->data.status, NombreSenal(p->data.sign), p->data.command);
+}

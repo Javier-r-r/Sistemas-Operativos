@@ -74,4 +74,8 @@ int forkaux();
 
 void freeListP(tListP *L);
 
+tPosPL searchPid(int pid, tListP P);
+
+void printJob(int pid, tListP P);
+
 #endif
