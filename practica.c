@@ -1118,6 +1118,7 @@ struct cmd cmds[]={
   {"showenv", Cmd_showenv},
   {"changevar", Cmd_changevar},
   {"subsvar", Cmd_subsvar},
+  {"exec", Cmd_exec},
 };
 
 //Funciones para el comando externo, para probar si funcionan el job y deljobs → las funciones siguientes funcionan pero hay que colocarlas bien en el código
