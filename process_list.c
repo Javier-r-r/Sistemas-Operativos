@@ -133,19 +133,20 @@ tPosPL nextP(tPosPL p, tListP P) {
     return(p->next);
 }
 
-bool insertNodeP(tListP *P, int pid, int uid, char *time, char status[MAX], int sign, char *command, int priority) {
+bool insertNodeP(tListP *P, int pid, char *usuario, char *time, char status[MAX], int sign, char *command, int priority) {
     tPosPL m, p;
 
     if(!createNodeP(&m)) return false;
     else {
         m->next=PNULL;
         m->data.pid=pid;
-        m->data.uid=uid;
+        m->data.usuario=usuario;
         strcpy(m->data.time,time);
         strcpy(m->data.status,status);
         m->data.sign=0;
         strcpy(m->data.command,command);
-        m->data.priority=priority;
+        //m->data.priority=priority;
+        m->data.priority=getpriority(PRIO_PROCESS, m->data.pid);
     }
     if((*P)->next == PNULL){
         (*P)->next=m;
@@ -281,8 +282,8 @@ void updateListP(tPosPL p, tListP *P) {
             p->data.sign = WTERMSIG(p->data.sign);
         }else if(WIFCONTINUED(p->data.sign)){
             strcpy(p->data.status, "ACTIVO");
-            p->data.sign = 0;
         }
+        p->data.priority = getpriority(PRIO_PROCESS, p->data.pid);
     }
 }
 
@@ -291,7 +292,7 @@ void printListP(tListP P){
         tPosPL p = P;
         updateListP(p, &P);
         while(p!=NULL){
-            printf("%6d %d p=%d %s %s (%3s) %s\n", p->data.pid, p->data.uid, p->data.priority, p->data.time, p->data.status, NombreSenal(p->data.sign), p->data.command);
+            printf("%6d %s p=%d %s %s (%3s) %s\n", p->data.pid, p->data.usuario, p->data.priority, p->data.time, p->data.status, NombreSenal(p->data.sign), p->data.command);
             p=p->next;
         }
     }
@@ -332,5 +333,6 @@ void printJob(int pid, tListP P){
     tPosPL p;
     updateListP(p, &P);
     if((p = searchPid(pid, P))!=NULL)
-        printf("%6d %d p=%d %s %s (%3s) %s\n", p->data.pid, p->data.uid, p->data.priority, p->data.time, p->data.status, NombreSenal(p->data.sign), p->data.command);
+        printf("%6d %s p=%d %s %s (%3s) %s\n", p->data.pid, p->data.usuario, p->data.priority, p->data.time, p->data.status, NombreSenal(p->data.sign), p->data.command);
 }
+//El uid debería ser el nombre de usuario y la prioridad debería de ser -1

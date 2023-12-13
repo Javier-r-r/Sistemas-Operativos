@@ -26,7 +26,7 @@
 
 typedef struct tItemPL {
     int pid;
-    int uid;
+    char *usuario;
     char *time;
     char status[MAX];
     int sign;
@@ -52,7 +52,7 @@ tPosPL lastP(tListP P);
 
 tPosPL nextP(tPosPL p, tListP P);
     
-bool insertNodeP(tListP *P, int pid, int uid, char *time, char status[MAX], int sign, char *command, int priority);
+bool insertNodeP(tListP *P, int pid, char *usuario, char *time, char status[MAX], int sign, char *command, int priority);
 
 void removeElementP(tPosPL p, tListP *P); //Elimina un proceso
 

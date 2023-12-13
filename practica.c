@@ -780,44 +780,44 @@ void Cmd_showvar(char *tr[]) {
 
 void Cmd_changevar(char *tr[]){
     
-    char new[MAX]="";
-    
-    if(tr[0] == NULL || tr[1] == NULL || tr[2] == NULL){
-    	printf("Uso: changevar [-a|-e|-p] var valor\n");
-    	return;
+  char new[MAX]="";
+  
+  if(tr[0] == NULL || tr[1] == NULL || tr[2] == NULL){
+    printf("Uso: changevar [-a|-e|-p] var valor\n");
+    return;
+  }
+  
+  if(!strcmp(tr[0],"-a")){
+    if (tr[1] == NULL || tr[2] == NULL) {
+      printf("Uso: changevar [-a|-e|-p] var valor\n");
+      return; 
     }
-    
-    if(!strcmp(tr[0],"-a")){
-      if (tr[1] == NULL || tr[2] == NULL) {
-        printf("Uso: changevar [-a|-e|-p] var valor\n");
-    	  return; 
-      }
-    	if((CambiarVariable(tr[1],tr[2],env1)) == -1){
-    	    perror("Imposible cambiar variable"); //Aqui creo que mejor poner perror
-    	    return;
-    	}
+    if((CambiarVariable(tr[1],tr[2],env1)) == -1){
+        perror("Imposible cambiar variable"); //Aqui creo que mejor poner perror
+        return;
     }
-    else if(!strcmp(tr[0],"-e")){
-      if (tr[1] == NULL || tr[2] == NULL) {
-        printf("Uso: changevar [-a|-e|-p] var valor\n");
-    	  return; 
-      }
-    	if((CambiarVariable(tr[1],tr[2],environ)) == -1){
-    	    perror("Imposible cambiar variable");
-    	    return;
-    	}
+  }
+  else if(!strcmp(tr[0],"-e")){
+    if (tr[1] == NULL || tr[2] == NULL) {
+      printf("Uso: changevar [-a|-e|-p] var valor\n");
+      return; 
     }
-    else if(!strcmp(tr[0],"-p")){
-      if (tr[1] == NULL || tr[2] == NULL) {
-        printf("Uso: changevar [-a|-e|-p] var valor\n");
-    	  return; 
-      }
-    	strcpy(new,tr[1]);
-    	strcat(new,"=");
-    	strcat(new,tr[2]);
-    	putenv(new);
+    if((CambiarVariable(tr[1],tr[2],environ)) == -1){
+        perror("Imposible cambiar variable");
+        return;
     }
-    else  printf("Uso: changevar [-a|-e|-p] var valor\n");
+  }
+  else if(!strcmp(tr[0],"-p")){
+    if (tr[1] == NULL || tr[2] == NULL) {
+      printf("Uso: changevar [-a|-e|-p] var valor\n");
+      return; 
+    }
+    strcpy(new,tr[1]);
+    strcat(new,"=");
+    strcat(new,tr[2]);
+    putenv(new);
+  }
+  else  printf("Uso: changevar [-a|-e|-p] var valor\n");
 }
 
 void Cmd_subsvar(char *tr[]) {
@@ -859,26 +859,51 @@ void Cmd_subsvar(char *tr[]) {
 }
 
 void Cmd_fork(tListP *P){
-    forkaux();
-    deleteListP(P);
+  forkaux();
+  deleteListP(P);
 }
 
-void Cmd_exec(char* tr[]){}
+void Cmd_exec(char *tr[]){
+  int i, j, terminar=0, a, k=0, variable;
+  char *var[MAX]={}, *prog[MAX]={};
+  for(i=0; tr[i]!=NULL && terminar==0; i++){ //buscamos las variables en las que se ejecutará prog
+      if((variable=BuscarVariable(tr[i], environ))!=-1){
+          var[i]=environ[variable];
+      }else terminar=1;
+  }
+  if(i==0) a=0; else a=i-1;
+  if(tr[a]!=NULL){ 
+      for(j=a; tr[j]!=NULL; j++){ //buscamos prog args
+          prog[k]=strdup(tr[j]);
+          k++;
+      }
+      if(prog[0]!=NULL){
+          char *cprio = strdup(prog[k-1]);
+          if(cprio[0]=='@'){
+              prog[j]=NULL;
+          }
+          if(var[0]==NULL) execvp(prog[0], prog);
+          else OurExecvpe(prog[0], prog, var);
+      }
+  }else{
+      printf("Argumentos insuficientes\n");
+  }
+}
 
 void Cmd_jobs(tListP *P){
-    printListP(*P);
+  printListP(*P);
 }
 
 void Cmd_deljobs(char *tr[], tListP *P){
-    if(tr[0]==NULL){
-        printListP(*P);
-    }else if(strcmp(tr[0], "-term")==0){
-        removeTermP(P);
-        printListP(*P);
-    }else if(strcmp(tr[0], "-sig")==0){
-        removeSigP(P);
-        printListP(*P);
-    }else printListP(*P);
+  if(tr[0]==NULL){
+      printListP(*P);
+  }else if(strcmp(tr[0], "-term")==0){
+      removeTermP(P);
+      printListP(*P);
+  }else if(strcmp(tr[0], "-sig")==0){
+      removeSigP(P);
+      printListP(*P);
+  }else printListP(*P);
 }
 
 void Cmd_job(char *tr[], tListP *P) {
@@ -886,17 +911,17 @@ void Cmd_job(char *tr[], tListP *P) {
   int st;
   tPosPL p;
   if(tr[0]==NULL)
-      printListP(*P);
+    printListP(*P);
   else{
-      if(strcmp(tr[0], "-fg")==0){
-          pid=atoi(tr[1]);
-          if((p = searchPid(pid, *P))!=NULL){
-              waitpid(pid,&st,0);
-              printf("Proceso %d terminado normalmente. Valor devuelto %d\n", pid, st);
-              removeElemP(p, P);
-          }
-      }else
-          printJob(atoi(tr[0]), *P);
+    if(strcmp(tr[0], "-fg")==0){
+      pid=atoi(tr[1]);
+      if((p = searchPid(pid, *P))!=NULL){
+          waitpid(pid,&st,0);
+          printf("Proceso %d terminado normalmente. Valor devuelto %d\n", pid, st);
+          removeElemP(p, P);
+      }
+    }else
+      printJob(atoi(tr[0]), *P);
   }
 }
 
@@ -1096,11 +1121,11 @@ struct cmd cmds[]={
 };
 
 //Funciones para el comando externo, para probar si funcionan el job y deljobs → las funciones siguientes funcionan pero hay que colocarlas bien en el código
-/*
+
 bool insertElementP(int pid, char* comm, tListP *P){
     tPosPL q,r; struct passwd *p;
     char fecha[MAX];
-    char* formato = "%y/%m/%d %H:%M:%S";
+    char* formato = "%Y/%m/%d %H:%M:%S";
     uid_t user;
     //se crea un nodo (si es posible)
     if (!createNodeP(&q))    return false;
@@ -1112,7 +1137,7 @@ bool insertElementP(int pid, char* comm, tListP *P){
         q->data.pid = pid;
         user = getuid();
         p = getpwuid(user);
-        q->data.uid = strdup(p->pw_name);
+        q->data.usuario = strdup(p->pw_name);
         q->data.priority = getpriority(PRIO_PROCESS, q->data.pid);
         q->data.command = strdup(comm);
         strcpy(q->data.status, "ACTIVO");
@@ -1176,7 +1201,7 @@ const char * Ejecutable (const char *s)
 	if (s==NULL || (p=getenv("PATH"))==NULL)
 		return s;
 	if (s[0]=='/' || !strncmp (s,"./",2) || !strncmp (s,"../",3))
-        return s;       /*is an absolute pathname
+        return s;       //is an absolute pathname
 	strncpy (path, p, MAX);
 	for (p=strtok(path,":"); p!=NULL; p=strtok(NULL,":")){
        sprintf (aux2,"%s/%s",p,s);
@@ -1222,7 +1247,7 @@ void exterprog(char* argv[], tListP *P){
     }else printf("Faltan parámetros\n");
     
 
-}*/
+}
 
 void procesar_comando(char *tr[], tList comandList, tListF fileList, tListM memoryList, tListP *processList) {
 
@@ -1258,8 +1283,8 @@ void procesar_comando(char *tr[], tList comandList, tListF fileList, tListM memo
     Cmd_deljobs(tr+1, processList);
   else if (!strcmp("job", tr[0]))
     Cmd_job(tr+1, processList);
-  else {
-    exterprog(tr,processList);
+  //else {
+  //  exterprog(tr,processList);
   else {
     int i;
     pid_t pid;
@@ -1302,7 +1327,7 @@ void procesar_comando(char *tr[], tList comandList, tListF fileList, tListM memo
         }else{
           waitpid(pid,NULL,0);
         }
-      }*/
+      }
     printf("Comando %s no encontrado. Consulte la lista de comandos disponibles con help\n", tr[0]);
   }
 }
