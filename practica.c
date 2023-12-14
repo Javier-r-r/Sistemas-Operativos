@@ -8,7 +8,7 @@ char ** env1;
 extern char ** environ;
 
 //Funcion que realiza el comando N de la lista hist
-void Cmd_comand(tList commandList, tListF fileList, tListM memoryList, tListP processList, char *tr[]) {
+void Cmd_comand(tList commandList, tListF fileList, tListM memoryList, tListP *processList, char *tr[]) {
   int N = atoi (tr[0]);
   if (N) {
     if (countItems(commandList) <= N) {
@@ -18,7 +18,7 @@ void Cmd_comand(tList commandList, tListF fileList, tListM memoryList, tListP pr
       tItemL item = getItem(atoi(tr[0]), commandList);
       TrocearCadena(item.comando, trozos);
       printf("Ejecutando hist (%d): %s\n", atoi(tr[0]), trozos[0]);
-      procesar_comando(trozos, commandList, fileList, memoryList, processList);
+      procesar_comando(trozos, commandList, fileList, memoryList, *processList);
     }
   } else 
     printf("Comando no encontrado\n");
@@ -1083,7 +1083,7 @@ void Cmd_help(char *tr[]) {
     printf("%s no encontrado\n", tr[0]);
 }
 
-void Cmd_exit(tListF fileList, tList commandList, tListM memoryList, tListP processList){	//Libera la memoria y luego finaliza el programa
+void Cmd_exit(tListF fileList, tList commandList, tListM memoryList, tListP *processList){	//Libera la memoria y luego finaliza el programa
   freeList(&commandList);
   freeListF(&fileList);
   freeListM(&memoryList);
@@ -1123,8 +1123,8 @@ struct cmd cmds[]={
 
 //Funciones para el comando externo, para probar si funcionan el job y deljobs → las funciones siguientes funcionan pero hay que colocarlas bien en el código
 
-/*
-bool insertElementP(int pid, char* comm, tListP *P){
+
+/*bool insertElementP(int pid, char* comm, tListP *P){
     tPosPL q,r; struct passwd *p;
     char fecha[MAX];
     char* formato = "%Y/%m/%d %H:%M:%S";
@@ -1151,7 +1151,7 @@ bool insertElementP(int pid, char* comm, tListP *P){
             r->next=q;
         }return true;
     }
-}
+}*/
 
 int getPrioExt(char* pri){
     int j;
@@ -1192,7 +1192,7 @@ void identifyData(char* argv[], char* var[], char* prog[], int *prio, int *bg){
     }else{
         printf("Argumentos insuficientes\n");
     }   
-}*/
+}
 
 const char * Ejecutable (const char *s)
 {
@@ -1217,7 +1217,7 @@ int OurExecvpe(const char *file, char *const argv[], char *const envp[])
 {
    return (execve(Ejecutable(file),argv, envp));
 }
-/*
+
 void exterprog(char* argv[], tListP *P){
     int prio, bg, pid, i, st;
     char* var[MAX]={}; char *prog[MAX]={};   
@@ -1249,7 +1249,7 @@ void exterprog(char* argv[], tListP *P){
     }else printf("Faltan parámetros\n");
     
 
-}*/
+}
 
 void procesar_comando(char *tr[], tList comandList, tListF fileList, tListM memoryList, tListP *processList) {
 
@@ -1285,10 +1285,18 @@ void procesar_comando(char *tr[], tList comandList, tListF fileList, tListM memo
     Cmd_deljobs(tr+1, processList);
   else if (!strcmp("job", tr[0]))
     Cmd_job(tr+1, processList);
-  //else {
-  //  exterprog(tr,processList);
   else {
     int i;
+    for (i=0; cmds[i].nombre != NULL; i++){
+      if (!strcmp(cmds[i].nombre, tr[0])) {
+        (cmds[i].pfuncion) (tr+1);
+        return;
+      } 
+    }
+    exterprog(tr,processList);
+
+  /*else {
+    int i;  
     int pid;
     int k=0;    
     char *usr="javi";
@@ -1330,7 +1338,7 @@ void procesar_comando(char *tr[], tList comandList, tListF fileList, tListM memo
         waitpid(pid,NULL,0);
       }
     }
-    printf("Comando %s no encontrado. Consulte la lista de comandos disponibles con help\n", tr[0]);
+    printf("Comando %s no encontrado. Consulte la lista de comandos disponibles con help\n", tr[0]);*/
   }
 }
 

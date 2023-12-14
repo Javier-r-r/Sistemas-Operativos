@@ -60,7 +60,7 @@ void removeTermP(tListP *P);
 
 void removeSigP(tListP *P);
 
-void deleteAtPositionP(tPosPL p, tListP *P);
+//void deleteAtPositionP(tPosPL p, tListP *P);
 
 void deleteListP(tListP *P);
 
@@ -77,5 +77,11 @@ void freeListP(tListP *L);
 tPosPL searchPid(int pid, tListP P);
 
 void printJob(int pid, tListP P);
+
+void setStat(tPosPL p);
+
+void updateList(tListP *P);
+
+bool insertElementP(int pid, char* comm, tListP *P);
 
 #endif

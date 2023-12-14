@@ -83,22 +83,60 @@ static struct SEN sigstrnum[]={
 
 int ValorSenal(char * sen)  /*devuelve el numero de senial a partir del nombre*/ 
 { 
-  int i;
-  for (i=0; sigstrnum[i].nombre!=NULL; i++)
-  	if (!strcmp(sen, sigstrnum[i].nombre))
-		return sigstrnum[i].senal;
-  return -1;
+    int i;
+    for (i=0; sigstrnum[i].nombre!=NULL; i++)
+  	    if (!strcmp(sen, sigstrnum[i].nombre))
+		    return sigstrnum[i].senal;
+    return -1;
 }
 
 
 char *NombreSenal(int sen)  /*devuelve el nombre senal a partir de la senal*/ 
 {			/* para sitios donde no hay sig2str*/
- int i;
-  for (i=0; sigstrnum[i].nombre!=NULL; i++)
-  	if (sen==sigstrnum[i].senal)
-		return sigstrnum[i].nombre;
- return ("SIGUNKNOWN");
+    int i;
+    for (i=0; sigstrnum[i].nombre!=NULL; i++)
+        if (sen==sigstrnum[i].senal)
+	        return sigstrnum[i].nombre;
+        if(sen == 0) return "000";
+    return ("SIGUNKNOWN");
 }
+
+
+
+
+
+
+
+void setStat(tPosPL p){
+    int status;
+    if(waitpid(p->data.pid, &status, WUNTRACED|WCONTINUED|WNOHANG) == p->data.pid){
+        if(WIFEXITED(status)){
+            p->data.sign = WEXITSTATUS(status);
+            strcpy(p->data.status, "TERMINADO");
+        }if(WIFSIGNALED(status)){
+            p->data.sign = WTERMSIG(status);
+            strcpy(p->data.status, "SENALADO");
+        }if(WIFSTOPPED(status)){
+            p->data.sign = WSTOPSIG(status);
+            strcpy(p->data.status, "PARADO");
+        }if(WIFCONTINUED(status)){
+            strcpy(p->data.status, "ACTIVO");
+        }p->data.priority = getpriority(PRIO_PROCESS, p->data.pid);
+    }
+}
+
+
+void updateList(tListP *P){
+    tPosPL p = *P;
+    while(p!=NULL){
+        setStat(p);
+        p=p->next;
+    }
+}
+
+
+
+
 
 
 
@@ -115,7 +153,47 @@ void createListP(tPosPL *P) {
     }
 }
 
-bool isEmptyListP(tListP P) {
+
+
+
+
+
+bool insertElementP(int pid, char* comm, tListP *P){
+    tPosPL q,r; struct passwd *p;
+    char fecha[MAX];
+    char* formato = "%Y/%m/%d %H:%M:%S";
+    uid_t user;
+    //se crea un nodo (si es posible)
+    if (!createNodeP(&q))    return false;
+    else{
+        time_t now = time(NULL);
+        struct tm *local = localtime(&now);
+        strftime(fecha, MAX, formato, local);
+        q->data.time = strdup(fecha);
+        q->data.pid = pid;
+        user = getuid();
+        p = getpwuid(user);
+        q->data.usuario = strdup(p->pw_name);
+        q->data.priority = getpriority(PRIO_PROCESS, q->data.pid);
+        q->data.command = strdup(comm);
+        strcpy(q->data.status, "ACTIVO");
+        q->data.sign = 0;
+        q->next = NULL;
+        if(*P==NULL) *P=q;
+        else {
+            for (r = *P; r->next != NULL; r = r->next); //move to end
+            r->next=q;
+        }return true;
+    }
+}
+
+
+
+
+
+
+
+/*bool isEmptyListP(tListP P) {
     return (P->next == PNULL);
 }
 
@@ -184,7 +262,7 @@ bool insertNodeP(tListP *P, int pid, char *usuario, char *time, char status[MAX]
             r->next=q;
         }return true;
     }
-    */
+    
 }
 
 /*
@@ -264,7 +342,7 @@ void deleteListP(tListP *P){
     }
 }
 
-tItemPL getData(tPosPL p) {
+/*tItemPL getData(tPosPL p) {
     return p->data;
 }
 
@@ -285,12 +363,13 @@ void updateListP(tPosPL p, tListP *P) {
         }
         p->data.priority = getpriority(PRIO_PROCESS, p->data.pid);
     }
-}
+}*/
 
 void printListP(tListP P){
+    updateList(&P);
     if(P!=NULL) {
         tPosPL p = P;
-        updateListP(p, &P);
+        //updateListP(p, &P);
         while(p!=NULL){
             printf("%6d %s p=%d %s %s (%3s) %s\n", p->data.pid, p->data.usuario, p->data.priority, p->data.time, p->data.status, NombreSenal(p->data.sign), p->data.command);
             p=p->next;
@@ -330,9 +409,9 @@ tPosPL searchPid(int pid, tListP P){
 }
 
 void printJob(int pid, tListP P){
+    updateList(&P);
     tPosPL p;
-    updateListP(p, &P);
+    //updateListP(p, &P);
     if((p = searchPid(pid, P))!=NULL)
         printf("%6d %s p=%d %s %s (%3s) %s\n", p->data.pid, p->data.usuario, p->data.priority, p->data.time, p->data.status, NombreSenal(p->data.sign), p->data.command);
 }
-//El uid debería ser el nombre de usuario y la prioridad debería de ser -1
