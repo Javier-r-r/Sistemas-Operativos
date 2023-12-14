@@ -1123,6 +1123,7 @@ struct cmd cmds[]={
 
 //Funciones para el comando externo, para probar si funcionan el job y deljobs → las funciones siguientes funcionan pero hay que colocarlas bien en el código
 
+/*
 bool insertElementP(int pid, char* comm, tListP *P){
     tPosPL q,r; struct passwd *p;
     char fecha[MAX];
@@ -1191,7 +1192,7 @@ void identifyData(char* argv[], char* var[], char* prog[], int *prio, int *bg){
     }else{
         printf("Argumentos insuficientes\n");
     }   
-}
+}*/
 
 const char * Ejecutable (const char *s)
 {
@@ -1216,7 +1217,7 @@ int OurExecvpe(const char *file, char *const argv[], char *const envp[])
 {
    return (execve(Ejecutable(file),argv, envp));
 }
-
+/*
 void exterprog(char* argv[], tListP *P){
     int prio, bg, pid, i, st;
     char* var[MAX]={}; char *prog[MAX]={};   
@@ -1248,7 +1249,7 @@ void exterprog(char* argv[], tListP *P){
     }else printf("Faltan parámetros\n");
     
 
-}
+}*/
 
 void procesar_comando(char *tr[], tList comandList, tListF fileList, tListM memoryList, tListP *processList) {
 
@@ -1288,11 +1289,12 @@ void procesar_comando(char *tr[], tList comandList, tListF fileList, tListM memo
   //  exterprog(tr,processList);
   else {
     int i;
-    pid_t pid;
+    int pid;
     int k=0;    
-    char aux[MAX]=""; 
+    char *usr="javi";
+    char *aux=""; 
     char state[MAX]="ACTIVE";
-    char thisTime[MAX];
+    char *thisTime = "23/11/22";
     for (i=0; cmds[i].nombre != NULL; i++){
       if (!strcmp(cmds[i].nombre, tr[0])) {
         (cmds[i].pfuncion) (tr+1);
@@ -1309,26 +1311,25 @@ void procesar_comando(char *tr[], tList comandList, tListF fileList, tListM memo
     if((pid = fork()) == 0){
       Cmd_exec(tr);
       Cmd_exit(fileList, comandList, memoryList, processList);
-            
+    }else{
+      if(!strcmp(tr[k-1],"&")){                  
+              
+        if((k-1) == 0)
+          strcpy(aux,"NULL");
+        else{
+          for(int j=0; tr[j] != NULL; j++)
+            if(strcmp(tr[j],"&")){
+              strcat(aux,tr[j]); 
+              strcat(aux," ");                  
+            }
+        }  	   
+                              
+        insertNodeP(&processList, pid, usr, getTime(thisTime), state, 0, aux, 0); 
+              
       }else{
-        if(!strcmp(tr[k-1],"&")){                  
-               
-          if((k-1) == 0)
-            strcpy(aux,"NULL");
-          else{
-            for(int j=0; tr[j] != NULL; j++)
-              if(strcmp(tr[j],"&")){
-                strcat(aux,tr[j]); 
-                strcat(aux," ");                  
-              }
-          }  	   
-               	                
-          insertNodeP(&processList, pid, getuid(), getTime(thisTime), state, 0, aux, 0); 
-               
-        }else{
-          waitpid(pid,NULL,0);
-        }
+        waitpid(pid,NULL,0);
       }
+    }
     printf("Comando %s no encontrado. Consulte la lista de comandos disponibles con help\n", tr[0]);
   }
 }
