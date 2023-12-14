@@ -80,7 +80,6 @@ static struct SEN sigstrnum[]={
  	{NULL,-1},
 	};    /*fin array sigstrnum */
 
-
 int ValorSenal(char * sen)  /*devuelve el numero de senial a partir del nombre*/ 
 { 
     int i;
@@ -90,22 +89,15 @@ int ValorSenal(char * sen)  /*devuelve el numero de senial a partir del nombre*/
     return -1;
 }
 
-
 char *NombreSenal(int sen)  /*devuelve el nombre senal a partir de la senal*/ 
 {			/* para sitios donde no hay sig2str*/
     int i;
     for (i=0; sigstrnum[i].nombre!=NULL; i++)
         if (sen==sigstrnum[i].senal)
 	        return sigstrnum[i].nombre;
-        if(sen == 0) return "000";
+        if(sen == 0) return "000";      //Añadido para que aparezca el número como en el shell
     return ("SIGUNKNOWN");
 }
-
-
-
-
-
-
 
 void setStat(tPosPL p){
     int status;
@@ -125,7 +117,6 @@ void setStat(tPosPL p){
     }
 }
 
-
 void updateList(tListP *P){
     tPosPL p = *P;
     while(p!=NULL){
@@ -133,12 +124,6 @@ void updateList(tListP *P){
         p=p->next;
     }
 }
-
-
-
-
-
-
 
 bool createNodeP(tPosPL *p) {
     *p=malloc(sizeof (struct tNodeP));
@@ -153,15 +138,10 @@ void createListP(tPosPL *P) {
     }
 }
 
-
-
-
-
-
 bool insertElementP(int pid, char* comm, tListP *P){
     tPosPL q,r; struct passwd *p;
     char fecha[MAX];
-    char* formato = "%Y/%m/%d %H:%M:%S";
+    char* formato = "%Y/%m/%d %H:%M:%S"; //La Y (mayúscula) para que aparecan los 4 dígitos del año
     uid_t user;
     //se crea un nodo (si es posible)
     if (!createNodeP(&q))    return false;
@@ -187,93 +167,6 @@ bool insertElementP(int pid, char* comm, tListP *P){
     }
 }
 
-
-
-
-
-
-
-/*bool isEmptyListP(tListP P) {
-    return (P->next == PNULL);
-}
-
-tPosPL firstP(tListP P) {
-    return P->next;
-}
-
-tPosPL lastP(tListP P) {
-    tPosPL p;
-    for(p=P->next; p->next!=PNULL; p=p->next);
-    return p;
-}
-
-tPosPL nextP(tPosPL p, tListP P) {
-    return(p->next);
-}
-
-bool insertNodeP(tListP *P, int pid, char *usuario, char *time, char status[MAX], int sign, char *command, int priority) {
-    tPosPL m, p;
-
-    if(!createNodeP(&m)) return false;
-    else {
-        m->next=PNULL;
-        m->data.pid=pid;
-        m->data.usuario=usuario;
-        strcpy(m->data.time,time);
-        strcpy(m->data.status,status);
-        m->data.sign=0;
-        strcpy(m->data.command,command);
-        //m->data.priority=priority;
-        m->data.priority=getpriority(PRIO_PROCESS, m->data.pid);
-    }
-    if((*P)->next == PNULL){
-        (*P)->next=m;
-        return true;
-    } else {
-        for(p=*P; p->next!=PNULL; p=p->next)
-            m->data.sign++;
-        p->next=m;
-        return true;
-    }
-    /*
-    tPosP q,r; struct passwd *p;
-    char fecha[MAX];
-    char* formato = "%y/%m/%d %H:%M:%S";
-    uid_t user;
-    //se crea un nodo (si es posible)
-    if (!createNodeP(&q))    return false;
-    else{
-        time_t now = time(NULL);
-        struct tm *local = localtime(&now);
-        strftime(fecha, MAX, formato, local);
-        q->time = strdup(fecha);
-        q->pid = pid;
-        user = getuid();
-        p = getpwuid(user);
-        q->owner = strdup(p->pw_name);
-        q->prio = getpriority(PRIO_PROCESS, q->pid);
-        q->comm = strdup(comm);
-        strcpy(q->status, "ACTIVO");
-        q->sign = 0;
-        q->next = NULL;
-        if(*P==NULL) *P=q;
-        else {
-            for (r = *P; r->next != NULL; r = r->next); //move to end
-            r->next=q;
-        }return true;
-    }
-    
-}
-
-/*
-void removeElementP(tPosPL p, tListP *P) {
-    if(p->next != PNULL)
-        (*P)->next=p->next;
-    if(p->next == PNULL)
-        (*P)->next=PNULL;
-    free(P);
-}
-*/
 void removeElemP(tPosPL p, tListP *P) {       //Borra un elemento en una posición concreta
     tPosPL q;
     if (p==*P) {
@@ -312,7 +205,6 @@ void removeSigP(tListP *P){         //Elimina procesos terminados por señal
 
 void deleteAtPositionP(tPosPL p, tListP *P) {
     tPosPL aux;
-
     if(p == ((*P)->next))
         (*P)->next=p->next;
     else if(p->next == PNULL) {
@@ -324,52 +216,17 @@ void deleteAtPositionP(tPosPL p, tListP *P) {
     }
     free(p);
 }
-/*
-void deleteListP(tListP *P) {
-    tPosPL p, aux;
 
-    while((*P)->next != PNULL) {
-        p=(*P)->next;
-        aux=p;
-        p=p->next;
-        removeElementP(aux,P);
-    }
-}
-*/
 void deleteListP(tListP *P){
     while(*P != NULL){
         removeElemP(*P, P);
     }
 }
 
-/*tItemPL getData(tPosPL p) {
-    return p->data;
-}
-
-void updateListP(tPosPL p, tListP *P) {
-        
-    if(waitpid(p->data.pid,&(p->data.sign), WNOHANG|WUNTRACED|WCONTINUED) == p->data.pid) {
-        if(WIFEXITED(p->data.sign)){    
-            strcpy(p->data.status, "TERMINADO");
-            p->data.sign = WEXITSTATUS(p->data.sign);                       
-        }else if(WIFSIGNALED(p->data.sign)){            
-            strcpy(p->data.status, "SENALADO");
-            p->data.sign = WTERMSIG(p->data.sign);
-        }else if(WIFSTOPPED(p->data.sign)){
-            strcpy(p->data.status, "PARADO");
-            p->data.sign = WTERMSIG(p->data.sign);
-        }else if(WIFCONTINUED(p->data.sign)){
-            strcpy(p->data.status, "ACTIVO");
-        }
-        p->data.priority = getpriority(PRIO_PROCESS, p->data.pid);
-    }
-}*/
-
 void printListP(tListP P){
     updateList(&P);
     if(P!=NULL) {
         tPosPL p = P;
-        //updateListP(p, &P);
         while(p!=NULL){
             printf("%6d %s p=%d %s %s (%3s) %s\n", p->data.pid, p->data.usuario, p->data.priority, p->data.time, p->data.status, NombreSenal(p->data.sign), p->data.command);
             p=p->next;
@@ -388,6 +245,7 @@ int forkaux(){
         return 0;
     } return -1;
 }
+
 void freeListP(tListP *L){
     tPosPL p, aux;
     
@@ -411,7 +269,6 @@ tPosPL searchPid(int pid, tListP P){
 void printJob(int pid, tListP P){
     updateList(&P);
     tPosPL p;
-    //updateListP(p, &P);
     if((p = searchPid(pid, P))!=NULL)
         printf("%6d %s p=%d %s %s (%3s) %s\n", p->data.pid, p->data.usuario, p->data.priority, p->data.time, p->data.status, NombreSenal(p->data.sign), p->data.command);
 }

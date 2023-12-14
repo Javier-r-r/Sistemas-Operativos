@@ -42,46 +42,23 @@ struct tNodeP {
 
 typedef struct tNodeP *tListP;
 
+int ValorSenal(char * sen);
+char *NombreSenal(int sen);
 void createListP(tListP *P);
-
-bool isEmptyListP(tListP P);
-
-tPosPL firstP(tListP P);
-
-tPosPL lastP(tListP P);
-
-tPosPL nextP(tPosPL p, tListP P);
-    
-bool insertNodeP(tListP *P, int pid, char *usuario, char *time, char status[MAX], int sign, char *command, int priority);
-
-void removeElementP(tPosPL p, tListP *P); //Elimina un proceso
-
-void removeTermP(tListP *P);
-
-void removeSigP(tListP *P);
-
-//void deleteAtPositionP(tPosPL p, tListP *P);
-
-void deleteListP(tListP *P);
-
-tItemPL getData(tPosPL p);
-
-void updateListP(tPosPL p, tListP *P);
-
-void printListP(tListP P);
-
-int forkaux();
-
-void freeListP(tListP *L);
-
-tPosPL searchPid(int pid, tListP P);
-
-void printJob(int pid, tListP P);
-
 void setStat(tPosPL p);
-
 void updateList(tListP *P);
-
+bool createNodeP(tPosPL *p);
+void createListP(tPosPL *P);
 bool insertElementP(int pid, char* comm, tListP *P);
+void removeElementP(tPosPL p, tListP *P);
+void removeTermP(tListP *P);
+void removeSigP(tListP *P);
+void deleteAtPositionP(tPosPL p, tListP *P);
+void deleteListP(tListP *P);
+void printListP(tListP P);
+int forkaux();
+void freeListP(tListP *L);
+tPosPL searchPid(int pid, tListP P);
+void printJob(int pid, tListP P);
 
 #endif

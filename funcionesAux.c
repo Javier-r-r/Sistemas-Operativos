@@ -513,23 +513,64 @@ int CambiarVariable(char * var, char * valor, char *e[])
   e[pos]=aux;
   return (pos);
 }
-char * getTime(char buffer[MAX]){
-    
-    time_t thisDay;
-    int day,hours,month,minutes, year, seconds;
-    
-    time(&thisDay);
-    
-    struct tm *local = localtime(&thisDay);
-    day = local -> tm_mday;
-    hours = local -> tm_hour;
-    month = local -> tm_mon + 1;
-    minutes = local -> tm_min;
-    year = local -> tm_year + 1900;
-    seconds = local -> tm_sec;
-    
-    sprintf(buffer, "%d/%d/%d  %02d:%02d:%02d", year, month, day, hours, minutes, seconds);
-    
-    return buffer;
-       
+
+int getPrioExt(char* pri){
+    int j;
+    char auxpri[MAX];
+    for(j=0; pri[j+1]; j++){
+        auxpri[j]=pri[j+1];
+    }
+    return atoi(auxpri);
+}
+
+void identifyData(char* tr[], char* var[], char* prog[], int *prio, int *bg){
+  int i, j, k=0, a, terminar=0, variable;
+  
+  for(i=0; tr[i]!=NULL && terminar==0; i++){ //buscamos las variables en las que se ejecutará prog
+    if((variable=BuscarVariable(tr[i], environ))!=-1){
+      var[i]=environ[variable];
+    }else terminar=1;
+  }
+  if(i==0) a=0; else a=i-1;
+  if(tr[a]!=NULL){ 
+    for(j=a; tr[j]!=NULL && strcmp(tr[j], "&")!=0 ; j++){ //buscamos prog args
+      prog[k]=tr[j];
+       k++;
+    } if(tr[j]==NULL) {
+       *bg = 0;
+    } else if(strcmp(tr[j], "&")==0) {
+       *bg=1;
+    } if(prog[0]!=NULL){
+      char* cprio = prog[k-1];
+      if(cprio[0]=='@'){
+        *prio = getPrioExt(cprio);
+        for(j=0; prog[j+1]!=NULL; j++);
+        prog[j]=NULL;
+      }
+    }
+  }else{
+    printf("Argumentos insuficientes\n");
+  }   
+}
+
+const char *Ejecutable (const char *s) {
+	char path[MAX];
+	static char aux2[MAX];
+	struct stat st;
+	char *p;
+	if (s==NULL || (p=getenv("PATH"))==NULL)
+		return s;
+	if (s[0]=='/' || !strncmp (s,"./",2) || !strncmp (s,"../",3))
+    return s;       //is an absolute pathname
+	strncpy (path, p, MAX);
+	for (p=strtok(path,":"); p!=NULL; p=strtok(NULL,":")){
+    sprintf (aux2,"%s/%s",p,s);
+	  if (lstat(aux2,&st)!=-1)
+		  return aux2;
+	}
+	return s;
+}
+
+int OurExecvpe(const char *file, char *const argv[], char *const envp[]) {
+  return (execve(Ejecutable(file),argv, envp));
 }

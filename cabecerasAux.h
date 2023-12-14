@@ -63,4 +63,7 @@ void mostrarCredenciales ();
 int BuscarVariable(char * var, char *e[]);
 void showEnvironment(char **entorno, char * nombre_entorno);
 int CambiarVariable(char * var, char * valor, char *e[]);
-char * getTime(char buffer[MAX]);
+int getPrioExt(char* pri);
+void identifyData(char* tr[], char* var[], char* prog[], int *prio, int *bg);
+const char *Ejecutable (const char *s);
+int OurExecvpe(const char *file, char *const argv[], char *const envp[]);

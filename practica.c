@@ -1121,134 +1121,36 @@ struct cmd cmds[]={
   {"exec", Cmd_exec},
 };
 
-//Funciones para el comando externo, para probar si funcionan el job y deljobs → las funciones siguientes funcionan pero hay que colocarlas bien en el código
-
-
-/*bool insertElementP(int pid, char* comm, tListP *P){
-    tPosPL q,r; struct passwd *p;
-    char fecha[MAX];
-    char* formato = "%Y/%m/%d %H:%M:%S";
-    uid_t user;
-    //se crea un nodo (si es posible)
-    if (!createNodeP(&q))    return false;
-    else{
-        time_t now = time(NULL);
-        struct tm *local = localtime(&now);
-        strftime(fecha, MAX, formato, local);
-        q->data.time = strdup(fecha);
-        q->data.pid = pid;
-        user = getuid();
-        p = getpwuid(user);
-        q->data.usuario = strdup(p->pw_name);
-        q->data.priority = getpriority(PRIO_PROCESS, q->data.pid);
-        q->data.command = strdup(comm);
-        strcpy(q->data.status, "ACTIVO");
-        q->data.sign = 0;
-        q->next = NULL;
-        if(*P==NULL) *P=q;
-        else {
-            for (r = *P; r->next != NULL; r = r->next); //move to end
-            r->next=q;
-        }return true;
+void Cmd_exterprog(char* tr[], tListP *P){
+  int prio, bg, pid, i, st;
+  char* var[MAX]={}; char *prog[MAX]={};   
+  char aux[MAX] = "";
+  prio=0; bg=0;
+  
+  identifyData(tr, var, prog, &prio, &bg);  
+  
+  if(prog[0]!=NULL){
+    if((pid=fork())==-1){ 
+      perror("No se puede hacer fork");
+    } else if(pid>0) { //padre 
+      if(prio!=0) setpriority(PRIO_PROCESS, pid, prio);
+      if(bg==1){
+        for(i=0; tr[i]!=NULL; i++){
+          strcat(aux, tr[i]);
+          strcat(aux, " ");
+        }
+        insertElementP(pid, aux, P);
+      } 
+      else waitpid(pid, &st, 0);
+    } else if(pid==0) { //hijo 
+      if(var[0]!=NULL){ 
+          OurExecvpe(prog[0], prog, var);
+      }else{
+          OurExecvpe(prog[0], prog, environ);
+      }
     }
-}*/
-
-int getPrioExt(char* pri){
-    int j;
-    char auxpri[MAX];
-    for(j=0; pri[j+1]; j++){
-        auxpri[j]=pri[j+1];
-    }
-    return atoi(auxpri);
-}
-
-void identifyData(char* argv[], char* var[], char* prog[], int *prio, int *bg){
-    int i, j, k=0, a, terminar=0, variable;
-    
-    for(i=0; argv[i]!=NULL && terminar==0; i++){ //buscamos las variables en las que se ejecutará prog
-        if((variable=BuscarVariable(argv[i], environ))!=-1){
-            var[i]=environ[variable];
-        }else terminar=1;
-    }
-    if(i==0) a=0; else a=i-1;
-    if(argv[a]!=NULL){ 
-        for(j=a; argv[j]!=NULL && strcmp(argv[j], "&")!=0 ; j++){ //buscamos prog args
-            prog[k]=argv[j];
-            k++;
-        }
-        if(argv[j]==NULL){
-            *bg = 0;
-        }else if(strcmp(argv[j], "&")==0){
-            *bg=1;
-        }
-        if(prog[0]!=NULL){
-            char* cprio = prog[k-1];
-            if(cprio[0]=='@'){
-                *prio = getPrioExt(cprio);
-                for(j=0; prog[j+1]!=NULL; j++);
-                prog[j]=NULL;
-            }
-        }
-    }else{
-        printf("Argumentos insuficientes\n");
-    }   
-}
-
-const char * Ejecutable (const char *s)
-{
-	char path[MAX];
-	static char aux2[MAX];
-	struct stat st;
-	char *p;
-	if (s==NULL || (p=getenv("PATH"))==NULL)
-		return s;
-	if (s[0]=='/' || !strncmp (s,"./",2) || !strncmp (s,"../",3))
-        return s;       //is an absolute pathname
-	strncpy (path, p, MAX);
-	for (p=strtok(path,":"); p!=NULL; p=strtok(NULL,":")){
-       sprintf (aux2,"%s/%s",p,s);
-	   if (lstat(aux2,&st)!=-1)
-		return aux2;
-	}
-	return s;
-}
-
-int OurExecvpe(const char *file, char *const argv[], char *const envp[])
-{
-   return (execve(Ejecutable(file),argv, envp));
-}
-
-void exterprog(char* argv[], tListP *P){
-    int prio, bg, pid, i, st;
-    char* var[MAX]={}; char *prog[MAX]={};   
-    char aux[MAX] = "";
-    prio=0; bg=0;
-    
-    identifyData(argv, var, prog, &prio, &bg);  
-    
-    if(prog[0]!=NULL){
-        if((pid=fork())==-1){ 
-            perror("No se puede hacer fork");
-        }else if(pid>0){ //soy el padre (pid hijo)
-            if(prio!=0) setpriority(PRIO_PROCESS, pid, prio);
-            if(bg==1){
-                for(i=0; argv[i]!=NULL; i++){
-                    strcat(aux, argv[i]);
-                    strcat(aux, " ");
-                }
-                insertElementP(pid, aux, P);
-            } 
-            else waitpid(pid, &st, 0);
-        }else if(pid==0){ //soy el hijo 
-            if(var[0]!=NULL){ 
-                OurExecvpe(prog[0], prog, var);
-            }else{
-                OurExecvpe(prog[0], prog, environ);
-            }
-        }
-    }else printf("Faltan parámetros\n");
-    
-
+  } else 
+    printf("Faltan parámetros\n");
 }
 
 void procesar_comando(char *tr[], tList comandList, tListF fileList, tListM memoryList, tListP *processList) {
@@ -1293,52 +1195,7 @@ void procesar_comando(char *tr[], tList comandList, tListF fileList, tListM memo
         return;
       } 
     }
-    exterprog(tr,processList);
-
-  /*else {
-    int i;  
-    int pid;
-    int k=0;    
-    char *usr="javi";
-    char *aux=""; 
-    char state[MAX]="ACTIVE";
-    char *thisTime = "23/11/22";
-    for (i=0; cmds[i].nombre != NULL; i++){
-      if (!strcmp(cmds[i].nombre, tr[0])) {
-        (cmds[i].pfuncion) (tr+1);
-        return;
-      }
-    }
-    if(tr[0] == NULL){
-      Cmd_exec(tr);
-      return;
-    }
-        
-    for(k=0; tr[k] != NULL; k++);       
-        
-    if((pid = fork()) == 0){
-      Cmd_exec(tr);
-      Cmd_exit(fileList, comandList, memoryList, processList);
-    }else{
-      if(!strcmp(tr[k-1],"&")){                  
-              
-        if((k-1) == 0)
-          strcpy(aux,"NULL");
-        else{
-          for(int j=0; tr[j] != NULL; j++)
-            if(strcmp(tr[j],"&")){
-              strcat(aux,tr[j]); 
-              strcat(aux," ");                  
-            }
-        }  	   
-                              
-        insertNodeP(&processList, pid, usr, getTime(thisTime), state, 0, aux, 0); 
-              
-      }else{
-        waitpid(pid,NULL,0);
-      }
-    }
-    printf("Comando %s no encontrado. Consulte la lista de comandos disponibles con help\n", tr[0]);*/
+    Cmd_exterprog(tr,processList);
   }
 }
 
