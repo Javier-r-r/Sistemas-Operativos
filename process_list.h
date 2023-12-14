@@ -50,7 +50,7 @@ void updateList(tListP *P);
 bool createNodeP(tPosPL *p);
 void createListP(tPosPL *P);
 bool insertElementP(int pid, char* comm, tListP *P);
-void removeElementP(tPosPL p, tListP *P);
+void removeElemP(tPosPL p, tListP *P);
 void removeTermP(tListP *P);
 void removeSigP(tListP *P);
 void deleteAtPositionP(tPosPL p, tListP *P);

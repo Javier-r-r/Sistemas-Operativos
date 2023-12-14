@@ -572,5 +572,9 @@ const char *Ejecutable (const char *s) {
 }
 
 int OurExecvpe(const char *file, char *const argv[], char *const envp[]) {
-  return (execve(Ejecutable(file),argv, envp));
+  int result = execve(Ejecutable(file),argv, envp);
+  if (result == -1) {
+    perror("No ejecutado");
+  }
+  return result;
 }

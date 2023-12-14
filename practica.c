@@ -8,7 +8,7 @@ char ** env1;
 extern char ** environ;
 
 //Funcion que realiza el comando N de la lista hist
-void Cmd_comand(tList commandList, tListF fileList, tListM memoryList, tListP *processList, char *tr[]) {
+void Cmd_comand(tList commandList, tListF fileList, tListM memoryList, tListP processList, char *tr[]) {
   int N = atoi (tr[0]);
   if (N) {
     if (countItems(commandList) <= N) {
@@ -18,7 +18,7 @@ void Cmd_comand(tList commandList, tListF fileList, tListM memoryList, tListP *p
       tItemL item = getItem(atoi(tr[0]), commandList);
       TrocearCadena(item.comando, trozos);
       printf("Ejecutando hist (%d): %s\n", atoi(tr[0]), trozos[0]);
-      procesar_comando(trozos, commandList, fileList, memoryList, *processList);
+      procesar_comando(trozos, commandList, fileList, memoryList, processList);
     }
   } else 
     printf("Comando no encontrado\n");
@@ -858,9 +858,9 @@ void Cmd_subsvar(char *tr[]) {
   }
 }
 
-void Cmd_fork(tListP *P){
+void Cmd_fork(tListP P){
   forkaux();
-  deleteListP(P);
+  deleteListP(&P);
 }
 
 void Cmd_exec(char *tr[]){
@@ -890,38 +890,38 @@ void Cmd_exec(char *tr[]){
   }
 }
 
-void Cmd_jobs(tListP *P){
-  printListP(*P);
+void Cmd_jobs(tListP P){
+  printListP(P);
 }
 
-void Cmd_deljobs(char *tr[], tListP *P){
+void Cmd_deljobs(char *tr[], tListP P){
   if(tr[0]==NULL){
-      printListP(*P);
+      printListP(P);
   }else if(strcmp(tr[0], "-term")==0){
-      removeTermP(P);
-      printListP(*P);
+      removeTermP(&P);
+      printListP(P);
   }else if(strcmp(tr[0], "-sig")==0){
-      removeSigP(P);
-      printListP(*P);
-  }else printListP(*P);
+      removeSigP(&P);
+      printListP(P);
+  }else printListP(P);
 }
 
-void Cmd_job(char *tr[], tListP *P) {
+void Cmd_job(char *tr[], tListP P) {
   pid_t pid;
   int st;
   tPosPL p;
   if(tr[0]==NULL)
-    printListP(*P);
+    printListP(P);
   else{
     if(strcmp(tr[0], "-fg")==0){
       pid=atoi(tr[1]);
-      if((p = searchPid(pid, *P))!=NULL){
+      if((p = searchPid(pid, P))!=NULL){
           waitpid(pid,&st,0);
           printf("Proceso %d terminado normalmente. Valor devuelto %d\n", pid, st);
-          removeElemP(p, P);
+          removeElemP(p, &P);
       }
     }else
-      printJob(atoi(tr[0]), *P);
+      printJob(atoi(tr[0]), P);
   }
 }
 
@@ -1083,7 +1083,7 @@ void Cmd_help(char *tr[]) {
     printf("%s no encontrado\n", tr[0]);
 }
 
-void Cmd_exit(tListF fileList, tList commandList, tListM memoryList, tListP *processList){	//Libera la memoria y luego finaliza el programa
+void Cmd_exit(tListF fileList, tList commandList, tListM memoryList, tListP processList){	//Libera la memoria y luego finaliza el programa
   freeList(&commandList);
   freeListF(&fileList);
   freeListM(&memoryList);
@@ -1121,7 +1121,7 @@ struct cmd cmds[]={
   {"exec", Cmd_exec},
 };
 
-void Cmd_exterprog(char* tr[], tListP *P){
+void Cmd_exterprog(char* tr[], tListP P){
   int prio, bg, pid, i, st;
   char* var[MAX]={}; char *prog[MAX]={};   
   char aux[MAX] = "";
@@ -1139,21 +1139,21 @@ void Cmd_exterprog(char* tr[], tListP *P){
           strcat(aux, tr[i]);
           strcat(aux, " ");
         }
-        insertElementP(pid, aux, P);
+        insertElementP(pid, aux, &P);
       } 
       else waitpid(pid, &st, 0);
     } else if(pid==0) { //hijo 
       if(var[0]!=NULL){ 
-          OurExecvpe(prog[0], prog, var);
+        OurExecvpe(prog[0], prog, var);
       }else{
-          OurExecvpe(prog[0], prog, environ);
+        OurExecvpe(prog[0], prog, environ);
       }
     }
   } else 
     printf("Faltan parámetros\n");
 }
 
-void procesar_comando(char *tr[], tList comandList, tListF fileList, tListM memoryList, tListP *processList) {
+void procesar_comando(char *tr[], tList comandList, tListF fileList, tListM memoryList, tListP processList) {
 
   if (tr[0] == NULL)
     return;

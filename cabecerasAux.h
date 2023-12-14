@@ -42,7 +42,7 @@ struct statParams{
   int recb;
 };
 
-void procesar_comando(char *tr[], tList commandList, tListF fileList, tListM memoryList, tListP *processList);
+void procesar_comando(char *tr[], tList commandList, tListF fileList, tListM memoryList, tListP processList);
 struct statParams getParams(char *tr[], struct statParams pr);
 void printStats(char *tr, struct statParams *pr);
 int TrocearCadena(char *cadena, char *trozos[]);
