@@ -4,5 +4,6 @@ ficheros_list.o
 funcionesAux.o
 memory_list.o
 process_list.o
+p3.o
 p3
 .idea/

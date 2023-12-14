@@ -1,26 +1,29 @@
-p3: practica.c comand_list.h ficheros_list.h cabecerasAux.h memory_list.h process_list.h ficheros_list.o comand_list.o funcionesAux.o memory_list.o process_list.o
-	gcc -Wall -g -o p3 practica.c ficheros_list.o comand_list.o funcionesAux.o memory_list.o process_list.o
+EXECUTABLE=p3
+CFLAGS= -Wall -g
+
+p3: p3.o ficheros_list.o comand_list.o funcionesAux.o memory_list.o process_list.o
+	gcc $(CFLAGS) -o $(EXECUTABLE) p3.o ficheros_list.o comand_list.o funcionesAux.o memory_list.o process_list.o
+
+p3.o: p3.c cabecerasAux.h
+	gcc $(CFLAGS) -c p3.c 
 
 ficheros_list.o: ficheros_list.c ficheros_list.h
-	gcc -c ficheros_list.c
+	gcc $(CFLAGS) -c ficheros_list.c
 
 comand_list.o: comand_list.c comand_list.h
-	gcc -c comand_list.c
+	gcc $(CFLAGS) -c comand_list.c
 
 funcionesAux.o: funcionesAux.c cabecerasAux.h
-	gcc -c funcionesAux.c
+	gcc $(CFLAGS) -c funcionesAux.c
 
 memory_list.o: memory_list.c memory_list.h
-	gcc -c memory_list.c
+	gcc $(CFLAGS) -c memory_list.c
 
 process_list.o: process_list.c process_list.h
-	gcc -c process_list.c
+	gcc $(CFLAGS) -c process_list.c
 
 limpiar: 
-	rm p3 comand_list.o ficheros_list.o funcionesAux.o memory_list.o process_list.o
+	rm *.o p3
 
-all: p3 funcionesAux.o comand_list.o ficheros_list.o memory_list.o process_list.o
-	./p3
-	
 valgrind: 
-	valgrind --leak-check=full --show-reachable=yes ./p3
+	valgrind --leak-check=full --show-reachable=yes ./$(EXECUTABLE)

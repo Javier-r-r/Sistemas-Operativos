@@ -92,10 +92,11 @@ int ValorSenal(char * sen)  /*devuelve el numero de senial a partir del nombre*/
 char *NombreSenal(int sen)  /*devuelve el nombre senal a partir de la senal*/ 
 {			/* para sitios donde no hay sig2str*/
     int i;
-    for (i=0; sigstrnum[i].nombre!=NULL; i++)
+    for (i=0; sigstrnum[i].nombre!=NULL; i++) {
         if (sen==sigstrnum[i].senal)
 	        return sigstrnum[i].nombre;
         if(sen == 0) return "000";      //Añadido para que aparezca el número como en el shell
+    }
     return ("SIGUNKNOWN");
 }
 
