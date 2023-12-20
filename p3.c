@@ -773,7 +773,6 @@ void Cmd_showvar(char *tr[]) {
   if( (pos = BuscarVariable(tr[0],environ)) == -1)
     return;
   
-  //printf("Con arg3 main %s(%p) @%p\n",environ[pos],environ[pos],env1);
   printf("Con environ %s(%p) @%p\n",environ[pos],environ[pos],&environ[pos]);
   printf("Con getenv %s(%p)\n",getenv(tr[0]),&environ[pos]);
 }
@@ -871,7 +870,8 @@ void Cmd_exec(char *tr[]){
           var[i]=environ[variable];
       }else terminar=1;
   }
-  if(i==0) a=0; else a=i-1;
+  if(i==0) a=0; 
+  else a=i-1;
   if(tr[a]!=NULL){ 
       for(j=a; tr[j]!=NULL; j++){ //buscamos prog args
           prog[k]=strdup(tr[j]);
