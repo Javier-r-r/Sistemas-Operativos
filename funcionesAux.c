@@ -506,7 +506,7 @@ int CambiarVariable(char * var, char * valor, char *e[])
     return(-1);
  
   if ((aux=(char *)malloc(strlen(var)+strlen(valor)+2))==NULL)
-	return -1;
+	  return -1;
   strcpy(aux,var);
   strcat(aux,"=");
   strcat(aux,valor);
@@ -561,11 +561,11 @@ const char *Ejecutable (const char *s) {
 	if (s==NULL || (p=getenv("PATH"))==NULL)
 		return s;
 	if (s[0]=='/' || !strncmp (s,"./",2) || !strncmp (s,"../",3))
-    return s;       //is an absolute pathname
+    return s;       //es una direccion absoluta
 	strncpy (path, p, MAX);
 	for (p=strtok(path,":"); p!=NULL; p=strtok(NULL,":")){
     sprintf (aux2,"%s/%s",p,s);
-	  if (lstat(aux2,&st)!=-1)
+	  if (lstat(aux2,&st)!=-1) //Verifica que el archivo exista
 		  return aux2;
 	}
 	return s;

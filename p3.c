@@ -731,7 +731,9 @@ void Cmd_uid(char *tr[]) {
       } else {
         new_uid = atoi(tr[2]);
         if (setuid(new_uid) == -1) {
-          perror("Imposible cambiar credencial");
+          char message[MAX];
+          snprintf(message, sizeof(message), "Usuario no existente %s", tr[2]);
+          perror(message);
           return;
         }
       }
@@ -774,7 +776,7 @@ void Cmd_showvar(char *tr[]) {
     return;
   
   printf("Con environ %s(%p) @%p\n",environ[pos],environ[pos],&environ[pos]);
-  printf("Con getenv %s(%p)\n",getenv(tr[0]),&environ[pos]);
+  printf("Con getenv %s(%p)\n",getenv(tr[0]),&environ[pos]);      //getenv devuelve un puntero a una cadena de caracteres que es parte del entorno del programa
 }
 
 void Cmd_changevar(char *tr[]){
@@ -833,7 +835,6 @@ void Cmd_subsvar(char *tr[]) {
       perror(message);
       return;
     }
-    printf("Variable de entorno actualizada: %s=%s\n", tr[2], tr[3]);
   } else if (!strcmp(tr[0], "-e")) {
     char message[MAX];
     int pos = BuscarVariable(tr[1], environ);
@@ -853,7 +854,6 @@ void Cmd_subsvar(char *tr[]) {
     strcat(environ[pos], "=");
     strcat(environ[pos], tr[3]);
 
-    printf("Variable de entorno actualizada: %s=%s\n", tr[2], tr[3]);
   }
 }
 
